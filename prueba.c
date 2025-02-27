@@ -172,15 +172,15 @@ int main(int argc, char *argv[]){
     drone dron3 = {1,2,2,3, 3};
     array_of_drones[2] = dron3;
 
-    target om1 = {6,8,5};
+    target om1 = {6,8,5, 1};
     array_of_targets[0] = om1;
-    target om2 = {2,0,1};
+    target om2 = {2,0,1,2};
     array_of_targets[1] = om2;
 
-    target oc1 = {7,7,5};
+    target oc1 = {7,7,5,3};
     array_of_targets[2] = oc1;
 
-    target oc2 = {1,3,3};
+    target oc2 = {1,3,3,4};
     array_of_targets[3] = oc2;
 
     pthread_t tid_drone1;

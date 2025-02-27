@@ -41,6 +41,8 @@ struct thread_args_target{
 
 thread_args_drone * arr_of_args_drone[3];
 
+pthread_mutex_t available;
+
 void computes_damage (drone drone, target * target){
 
     bool hits = false;
@@ -73,7 +75,9 @@ void computes_damage (drone drone, target * target){
 
     if (hits){
         printf("It hits. Current health: %d. Damage done: %d \n", target->health,drone.damage);
+        pthread_mutex_lock(&available);
         target->health = target->health - drone.damage;
+        pthread_mutex_unlock(&available);
     } else{
         printf("It doesn't hit.\n");
 
@@ -130,8 +134,6 @@ void create_threads (pthread_t * array_of_threads, pthread_attr_t * thread_drone
 
         arr_of_args_drone[i] = arg;
 
-        printf("%d\n", arg->drone.id);
-
         pthread_create(&array_of_threads[i], thread_drone_attr, drone_damage_targets, arr_of_args_drone[i]);
     }
     
@@ -152,10 +154,17 @@ void kill_threads(){
      */
 }
 
-int main(int argc, char *argv[]){
+
+
+int main(void){
     
     int num_of_drones = 3;
     int num_of_targets = 4;
+
+    if(pthread_mutex_init(&available, NULL) != 0){
+        fprintf(stderr, "Couldn't initialize mutex\n");
+        return 1;
+    }
 
     pthread_t array_of_threads[3];
     thread_args_target arr_of_args_target[num_of_targets];
@@ -172,15 +181,15 @@ int main(int argc, char *argv[]){
     drone dron3 = {1,2,2,3, 3};
     array_of_drones[2] = dron3;
 
-    target om1 = {6,8,5};
+    target om1 = {6,8,5,1};
     array_of_targets[0] = om1;
-    target om2 = {2,0,1};
+    target om2 = {2,0,1,2};
     array_of_targets[1] = om2;
 
-    target oc1 = {7,7,5};
+    target oc1 = {7,7,5,3};
     array_of_targets[2] = oc1;
 
-    target oc2 = {1,3,3};
+    target oc2 = {1,3,3,4};
     array_of_targets[3] = oc2;
 
     pthread_t tid_drone1;

@@ -39,6 +39,8 @@ struct thread_args_target{
     int num_of_drones;
 };
 
+thread_args_drone * arr_of_args_drone[3];
+
 void computes_damage (drone drone, target * target){
 
     bool hits = false;
@@ -86,6 +88,8 @@ void * drone_damage_targets (void * args){
         computes_damage(arguments->drone, &arguments->array_of_targets[j]);
         printf("Health left: %d\n",arguments->array_of_targets[j].health);
     }
+
+    return NULL;
 }
 
 void create_threads (pthread_t * array_of_threads, pthread_attr_t * thread_drone_attr, drone * array_of_drones, thread_args_drone ** arr_of_args_drone, target * array_of_targets, thread_args_target * arr_of_args_target, int num_of_drones, int num_of_targets){
@@ -124,11 +128,11 @@ void create_threads (pthread_t * array_of_threads, pthread_attr_t * thread_drone
         arg->array_of_targets = array_of_targets;
         arg->num_of_targets = num_of_targets;
 
-        (arr_of_args_drone)[i] = &arg;
+        arr_of_args_drone[i] = arg;
 
         printf("%d\n", arg->drone.id);
 
-        pthread_create(&array_of_threads[i], thread_drone_attr, drone_damage_targets, &arg);
+        pthread_create(&array_of_threads[i], thread_drone_attr, drone_damage_targets, arr_of_args_drone[i]);
     }
     
 }
@@ -154,7 +158,6 @@ int main(int argc, char *argv[]){
     int num_of_targets = 4;
 
     pthread_t array_of_threads[3];
-    thread_args_drone ** arr_of_args_drone = malloc(num_of_drones * sizeof(thread_args_drone));
     thread_args_target arr_of_args_target[num_of_targets];
 
     drone array_of_drones[num_of_drones];
@@ -197,9 +200,8 @@ int main(int argc, char *argv[]){
     join_threads(array_of_threads, num_of_drones);
     //FREE DYNAMICALLY ALLOCATED MEMORY FOR ARGUMENTS IN ARRAY OF ARGUMENTS (DRONES AND TARGETS)
     for (int i = 0; i < num_of_drones; i++){
-        free(&arr_of_args_drone[i]);
+        free(arr_of_args_drone[i]);
     }
-    free(arr_of_args_drone);
     //FREE DYNAMICALLY ALLOCATED MEMORY FOR ARGUMENTS IN ARRAY OF ARGUMENTS (DRONES AND TARGETS)
     pthread_attr_destroy(&thread_drone_attr);
 

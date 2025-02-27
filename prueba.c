@@ -20,40 +20,38 @@ struct target{
     int health;
 };
 
-void computes_damage (drone drone, target target){
+void computes_damage (drone drone, target * target){
     // First Quadrant
-    if (drone.x >= target.x && drone.y >= target.y){
-        printf("(%d,%d)", drone.x - drone.radius, drone.y - drone.radius);
-        if (drone.x - drone.radius <= target.x && drone.y - drone.radius <= target.y){
-            printf ("It hits\n");
+    if (drone.x >= target->x && drone.y >= target->y){
+        if (drone.x - drone.radius <= target->x && drone.y - drone.radius <= target->y){
+            printf("It hits. Current health: %d. Damage done: %d \n", target->health,drone.damage);
+            target->health = target->health - drone.damage;
         }
     }
     
     //Second Quadrant
-    else if (drone.x < target.x && drone.y > target.y){
-        printf("(%d,%d)", drone.x + drone.radius, drone.y - drone.radius);
+    else if (drone.x < target->x && drone.y > target->y){
+        if(drone.x + drone.radius >= target->x && drone.y - drone.radius <= target->y){
+            printf("It hits. Current health: %d. Damage done: %d \n", target->health,drone.damage);
+            target->health = target->health - drone.damage;
 
-        if(drone.x + drone.radius >= target.x && drone.y - drone.radius <= target.y){
-            printf("It hits\n");
         }
     }
     //Third Quadrant
-    else if (drone.x > target.x && drone.y < target.y){
-        printf("(%d,%d)", drone.x - drone.radius, drone.y + drone.radius);
+    else if (drone.x > target->x && drone.y < target->y){
+        if(drone.x - drone.radius <= target->x && drone.y + drone.radius >= target->y){
+            printf("It hits. Current health: %d. Damage done: %d \n", target->health,drone.damage);
+            target->health = target->health - drone.damage;
 
-        if(drone.x - drone.radius <= target.x && drone.y + drone.radius >= target.y){
-
-
-            printf("It hits\n");
         }
     }
     //Fourth Quadrant
-    else if (drone.x <= target.x && drone.y <= target.y){
-        printf("(%d,%d)", drone.x + drone.radius, drone.y + drone.radius);
+    else if (drone.x <= target->x && drone.y <= target->y){
+        if(drone.x + drone.radius >= target->x && drone.y + drone.radius >= target->y){
 
-        if(drone.x + drone.radius >= target.x && drone.y + drone.radius >= target.y){
+            printf("It hits. Current health: %d. Damage done: %d \n", target->health,drone.damage);
+            target->health = target->health - drone.damage;
 
-            printf("It hits\n");
         }
     }
 }
@@ -114,7 +112,8 @@ int main(){
     for (int i = 0; i < 1; i++){
         for (int j = 0; j < 4; j++){
 
-            computes_damage(array_of_drones[i], array_of_targets[j]);
+            computes_damage(array_of_drones[i], &array_of_targets[j]);
+            printf("Health left: %d\n",array_of_targets[j].health);
         }
     }
 

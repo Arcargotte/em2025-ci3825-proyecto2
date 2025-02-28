@@ -167,7 +167,6 @@ int main(void){
     }
 
     pthread_t array_of_threads[3];
-    thread_args_target arr_of_args_target[num_of_targets];
 
     drone array_of_drones[num_of_drones];
     target array_of_targets[num_of_targets];
@@ -181,7 +180,7 @@ int main(void){
     drone dron3 = {1,2,2,3, 3};
     array_of_drones[2] = dron3;
 
-    target om1 = {6,8,5};
+    target om1 = {6,8,5,1};
     array_of_targets[0] = om1;
     target om2 = {2,0,1,2};
     array_of_targets[1] = om2;

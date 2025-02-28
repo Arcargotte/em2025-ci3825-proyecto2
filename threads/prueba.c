@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <string.h>
 
 int n = 10;
 int m = 10;

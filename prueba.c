@@ -96,7 +96,7 @@ void * drone_damage_targets (void * args){
     return NULL;
 }
 
-void create_threads (pthread_t * array_of_threads, pthread_attr_t * thread_drone_attr, drone * array_of_drones, thread_args_drone ** arr_of_args_drone, target * array_of_targets, thread_args_target * arr_of_args_target, int num_of_drones, int num_of_targets){
+void create_threads (pthread_t * array_of_threads, pthread_attr_t * thread_drone_attr, drone * array_of_drones, thread_args_drone ** arr_of_args_drone, target * array_of_targets, int num_of_drones, int num_of_targets){
     /**
      * Procesa input del usuario de la siguiente manera:
      * 1. Usuario introduce el número de objetivos del mapa, coordenadas y resistencia
@@ -192,20 +192,11 @@ int main(void){
     target oc2 = {1,3,3,4};
     array_of_targets[3] = oc2;
 
-    pthread_t tid_drone1;
-    array_of_threads[0] = tid_drone1;
-
-    pthread_t tid_drone2;
-    array_of_threads[1] = tid_drone2;
-
-    pthread_t tid_drone3;
-    array_of_threads[2] = tid_drone3;
-
     pthread_attr_t thread_drone_attr;
 
     pthread_attr_init(&thread_drone_attr);
 
-    create_threads(array_of_threads, &thread_drone_attr, array_of_drones, arr_of_args_drone, array_of_targets, arr_of_args_target, num_of_drones, num_of_targets);
+    create_threads(array_of_threads, &thread_drone_attr, array_of_drones, arr_of_args_drone, array_of_targets, num_of_drones, num_of_targets);
     join_threads(array_of_threads, num_of_drones);
     //FREE DYNAMICALLY ALLOCATED MEMORY FOR ARGUMENTS IN ARRAY OF ARGUMENTS (DRONES AND TARGETS)
     for (int i = 0; i < num_of_drones; i++){

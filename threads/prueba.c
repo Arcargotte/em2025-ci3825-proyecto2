@@ -5,13 +5,13 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <string.h>
+#include <math.h>
 
 int n = 10;
 int m = 10;
 int num_of_drones;    
 int num_of_targets;
 int num_of_threads = 2;
-
 
 typedef struct drone drone;
 struct drone{
@@ -118,10 +118,59 @@ void * drone_damage_targets (void * args){
     return NULL;
 }
 
+void calculate_drone_per_thread( int * array_of_drones_for_threads ){
+
+    float drone_per_thread = (float)num_of_drones/num_of_threads;
+
+    printf("Division: %f\n", drone_per_thread);
+
+    int drone_int = (int) drone_per_thread;
+    
+    printf("Parte entera: %d\n", drone_int);
+
+    for(int i = 0; i < num_of_threads; i++){
+        array_of_drones_for_threads[i] = drone_int;
+    }
+
+    // I just need the decimal part
+    drone_per_thread = drone_per_thread - drone_int;
+
+    printf("Parte decimal: %f\n", drone_per_thread);
+
+    // I just need the decimal part
+    int dif = roundf(drone_per_thread * num_of_threads);
+
+    printf("Resto: %d\n", dif);
+    
+    int i = 0;
+    while(dif > 0){
+        array_of_drones_for_threads[i]++;
+        dif--;
+        i++; 
+    }
+
+    /*
+    ------------- Debug -----------------
+    printf("[");
+    for(int i = 0; i < num_of_threads; i++){
+        if(i != num_of_threads - 1){
+            printf("%d, ", array_of_drones_for_threads[i]);
+        } else{
+            printf("%d", array_of_drones_for_threads[i]);
+        }
+        
+    }
+    printf("]\n");
+    */
+
+}
+
 void create_threads (pthread_t * array_of_threads, pthread_attr_t * thread_drone_attr, drone * array_of_drones, thread_args_drone ** arr_of_args_drone, target * array_of_targets){
     //CREA HILO POR DRON
     int j = 0;
-    const int drone_size_sub_array = num_of_drones / num_of_threads;
+    int array_of_drones_for_threads[num_of_threads];
+
+    calculate_drone_per_thread(array_of_drones_for_threads);
 
     for (int i = 0; i < num_of_threads; i++){
         /*ASIGNA MEMORIA DINÁMICAMENTE*/
@@ -131,27 +180,27 @@ void create_threads (pthread_t * array_of_threads, pthread_attr_t * thread_drone
             return;
         }
 
-        arg->array_of_drones = (drone *) malloc(drone_size_sub_array * sizeof(drone));
+        arg->array_of_drones = (drone *) malloc(array_of_drones_for_threads[i] * sizeof(drone));
         if (!arg->array_of_drones) {
             perror("Error al asignar memoria");
             exit(EXIT_FAILURE);
         }
 
-        for(int k = 0; k < num_of_drones / num_of_threads; k++){
+        for(int k = 0; k < array_of_drones_for_threads[i]; k++){
             printf("Entro dron %d en hilo %d.\n", array_of_drones[j].id, i);
             arg->array_of_drones[k] = array_of_drones[j];
             j++;
         }
 
         printf("Sub-Arreglo contiene:");
-        for(int k = 0; k < num_of_drones / num_of_threads; k++){
+        for(int k = 0; k < array_of_drones_for_threads[i]; k++){
             printf(" dron %d,", arg->array_of_drones[k].id);
         }
         printf("\n");
         
         arg->array_of_targets = array_of_targets;
         arg->num_of_targets = num_of_targets;
-        arg->num_of_drones = drone_size_sub_array;
+        arg->num_of_drones = array_of_drones_for_threads[i];
 
         arr_of_args_drone[i] = arg;
 
@@ -162,7 +211,7 @@ void create_threads (pthread_t * array_of_threads, pthread_attr_t * thread_drone
 void join_threads (pthread_t * array_of_threads){
     /**
      * Por cada uno de los elementos en un arreglo de hilos, ejecutar la función pthread_join() para que el proceso espere a que los hilos terminen ejecución.
-     */
+    */
     for (int i = 0; i < num_of_threads; i++){
         pthread_join(array_of_threads[i], NULL);
     }

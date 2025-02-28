@@ -167,12 +167,162 @@ void kill_threads(){
      */
 }
 
-
-
 int main(void){
     
     int num_of_drones = 3;
-    int num_of_targets = 4;
+    int num_of_targets;
+
+    FILE *txt_file;
+    // Opens file with read function
+    txt_file = fopen("archivo.txt", "r");
+
+    // In case the file couldn't open
+    if (txt_file == NULL) {
+        printf("\x1b[31mError:\x1b[37m Couldn't open text file!\n");
+        return false;
+    }
+
+    // Reads the content of the file line by line
+    int line_counter = 1;
+    char line[100];
+    while (fgets(line, sizeof(line), txt_file) != NULL) {
+        
+        if(line_counter == 1){
+            // Get the memory space needed for
+            int q = 0;
+            while(line[q] != ' '){
+                q++;
+            }
+
+            // Get the memory space needed for
+            int j = q + 1;
+            int i = 0;
+            while(line[j] != '\n'){
+                j++;
+                i++;
+            }
+
+            const int rows_size = q; 
+            const int columns_size = i; 
+
+            char line_rows[rows_size + 1];
+            char line_columns[columns_size + 1];
+
+            q = 0;
+            while(line[q] != ' '){
+                line_rows[q] = line[q];
+                q++;
+            }
+            line_rows[q] = '\0';
+
+            j = q + 1;
+            i = 0;
+            while(line[j] != '\n'){
+                line_columns[i] = line[j];
+                j++;
+                i++;
+            }
+            line_columns[i] = '\0';
+
+            int rows = atoi(line_rows);  
+            int columns = atoi(line_columns);
+
+            printf("Rows: %d\n", rows);
+            printf("Columns: %d\n", columns);
+
+        } else if (line_counter == 2){
+            int i = 0;
+            while(line[i] != '\n'){
+                i++;
+            }
+            const int chars_target = i;
+            char line_num_of_targets[chars_target + 1];
+
+            i = 0;
+            while(line[i] != '\n'){
+                line_num_of_targets[i] = line[i];
+                i++;
+            }
+            line_num_of_targets[i] = '\0';
+
+            num_of_targets = atoi(line_num_of_targets);
+
+            printf("Targets: %d\n", num_of_targets);
+
+        } else if( 2 + num_of_targets >= line_counter &&  line_counter > 2){
+            
+            // Get the memory space needed for
+            int q = 0;
+            while(line[q] != ' '){
+                q++;
+            }
+
+            // Get the memory space needed for
+            int j = q + 1;
+            int i = 0;
+            while(line[j] != ' '){
+                j++;
+                i++;
+            }
+
+            // Get the memory space needed for
+            int k = j + 1;
+            int l = 0;
+            while(line[k] != '\n'){
+                k++;
+                l++;
+            }
+
+            const int coord_x_size = q; 
+            const int coord_y_size = i; 
+            const int resistance_size = k; 
+
+            char line_x[coord_x_size + 1];
+            char line_y[coord_y_size + 1];
+            char line_resistance[resistance_size + 1];
+
+            // Get the memory space needed for
+            q = 0;
+            while(line[q] != ' '){
+                line_x[q] = line[q];
+                q++;
+            }
+            line_x[q] = '\0';
+
+            // Get the memory space needed for
+            j = q + 1;
+            i = 0;
+            while(line[j] != ' '){
+                line_y[i] = line[j];
+                j++;
+                i++;
+            }
+            line_y[i] = '\0';
+
+            // Get the memory space needed for
+            k = j + 1;
+            l = 0;
+            while(line[k] != '\n'){
+                line_resistance[l] = line[k];
+                k++;
+                l++;
+            }
+            line_resistance[l] = '\0';
+
+
+
+            printf("x: %s\n",  line_x);
+            printf("Y: %s\n", line_y);
+            printf("Resistance: %s\n", line_resistance);
+
+        }
+
+
+        line_counter++;
+    }   
+
+    // Close file
+    fclose(txt_file);
 
     if(pthread_mutex_init(&available, NULL) != 0){
         fprintf(stderr, "Couldn't initialize mutex\n");

@@ -22,6 +22,7 @@ struct target{
     int x;
     int y;
     int health;
+    int resistance;
     int id;
     bool destroyed;
     int type;
@@ -172,8 +173,8 @@ int main(void){
     int num_of_drones;
     int num_of_targets;
 
-    drone array_of_drones[num_of_drones];
-    target array_of_targets[num_of_targets];
+    drone * array_of_drones;
+    target * array_of_targets;
     
     FILE *txt_file;
     // Opens file with read function
@@ -252,6 +253,8 @@ int main(void){
 
             printf("Targets: %d\n", num_of_targets);
 
+            array_of_targets = (target *) malloc (num_of_targets * sizeof(target));
+
         } else if( 2 + num_of_targets >= line_counter &&  line_counter > 2){
             
             // Get the memory space needed for
@@ -318,9 +321,25 @@ int main(void){
             int coord_y = atoi(line_y);
             int resistance = atoi(line_resistance);
 
-            printf("x: %d\n",  coord_x);
+            printf("X: %d\n",  coord_x);
             printf("Y: %d\n", coord_y);
             printf("Resistance: %d\n", resistance);
+
+            target * new_target = (target *) malloc (sizeof(target));
+            new_target->x = coord_x;
+            new_target->y = coord_y;
+            new_target->health = resistance;
+            new_target->resistance = resistance;
+            new_target->id = line_counter - 2;
+            if(resistance < 0){
+                new_target->type = 0;
+            } else {
+                new_target->type = 1;
+            }
+            new_target->destroyed = false;
+
+            memcpy(&array_of_targets[line_counter - 3], new_target, sizeof(target));
+            free(new_target);
 
         } else if( 3 + num_of_targets == line_counter ){
 
@@ -341,6 +360,9 @@ int main(void){
             num_of_drones = atoi(line_num_of_drones);
 
             printf("Drones: %d\n", num_of_drones);
+
+            array_of_drones = (drone *) malloc (num_of_drones * sizeof(drone));
+
 
         } else if( 3 + num_of_targets + num_of_drones >= line_counter &&  line_counter > 3 + num_of_targets ){
 
@@ -430,10 +452,20 @@ int main(void){
             int radius = atoi(line_radius);
             int power = atoi(line_power);
 
-            printf("x: %d\n",  coord_x);
+            printf("X: %d\n",  coord_x);
             printf("Y: %d\n", coord_y);
             printf("Radius: %d\n", radius);
             printf("Power: %d\n", power);
+
+            drone * new_drone = (drone *) malloc (sizeof(drone));
+            new_drone->x = coord_x;
+            new_drone->y = coord_y;
+            new_drone->radius = radius;
+            new_drone->damage = power;
+            new_drone->id = line_counter - (3 + num_of_targets);
+
+            memcpy(&array_of_drones[line_counter - (4 + num_of_targets)], new_drone, sizeof(drone));
+            free(new_drone);
 
         }
 
@@ -449,27 +481,7 @@ int main(void){
         return 1;
     }
 
-    pthread_t array_of_threads[3];
-
-    drone dron1 = {1,2,2,1,1};
-    array_of_drones[0] = dron1;
-
-    drone dron2 = {1,2,2,3,2};
-    array_of_drones[1] = dron2;
-
-    drone dron3 = {1,2,2,3,3};
-    array_of_drones[2] = dron3;
-
-    target om1 = {6,8,5,1,false,0};
-    array_of_targets[0] = om1;
-    target om2 = {2,0,1,2,false,0};
-    array_of_targets[1] = om2;
-
-    target oc1 = {7,7,5,3,false,1};
-    array_of_targets[2] = oc1;
-
-    target oc2 = {1,3,3,4,false,1};
-    array_of_targets[3] = oc2;
+    pthread_t array_of_threads[num_of_drones];
 
     pthread_attr_t thread_drone_attr;
 
@@ -487,8 +499,10 @@ int main(void){
     /*PRUEBA*/
     printf("\n");
     for (int i = 0; i < num_of_targets; i++){
-        printf("target en posicion (%d,%d) tiene health %d \n",array_of_targets[i].x, array_of_targets[i].y, array_of_targets[i].health);
+        printf("target %d en posicion (%d,%d) tiene health %d \n",array_of_targets[i].id,array_of_targets[i].x, array_of_targets[i].y, array_of_targets[i].health);
     }
+    free(array_of_targets);
+    free(array_of_drones);
 
     return 0;
 }

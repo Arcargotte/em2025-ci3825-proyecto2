@@ -181,7 +181,7 @@ int main(void){
     drone dron3 = {1,2,2,3, 3};
     array_of_drones[2] = dron3;
 
-    target om1 = {6,8,5};
+    target om1 = {6,8,5,1};
     array_of_targets[0] = om1;
     target om2 = {2,0,1,2};
     array_of_targets[1] = om2;

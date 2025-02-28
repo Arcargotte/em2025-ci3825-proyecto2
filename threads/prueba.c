@@ -281,7 +281,7 @@ int main(void){
             // Get the memory space needed for
             int k = j + 1;
             i = 0;
-            while(line[k] != '\n'){
+            while(line[k] != '\n' && line[k] != '\0'){
                 k++;
                 i++;
             }
@@ -399,7 +399,7 @@ int main(void){
             // Get the memory space needed for
             j = k + 1;
             i = 0;
-            while(line[j] != '\n'){
+            while(line[j] != '\n' && line[j] != '\0'){
                 j++;
                 i++;
             }
@@ -442,7 +442,7 @@ int main(void){
             // Get the memory space needed for
             j = k + 1;
             i = 0;
-            while(line[j] != '\n'){
+            while(line[j] != '\n' && line[j] != '\0'){
                 line_power[i] = line[j];
                 j++;
                 i++;

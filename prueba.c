@@ -129,7 +129,7 @@ void create_threads (pthread_t * array_of_threads, pthread_attr_t * thread_drone
 
     /**
       * CREA ARREGLO DE HILOS
-      */
+    */
 
     //CREA HILO POR DRON
     for (int i = 0; i < num_of_drones; i++){
@@ -163,12 +163,12 @@ void join_threads (pthread_t * array_of_threads, int num_of_threads){
 }
 
 void kill_threads(){
-    /**
-     * Elimina el bloque de atributos de los hilos del arreglo de hilos ejecutando la función pthread_attr_destroy.
-     */
+    /*
+        Elimina el bloque de atributos de los hilos del arreglo de hilos ejecutando la función pthread_attr_destroy.
+    */
 }
 
-int main(void){
+int main(int argc, char *argv[]){
     
     int num_of_drones;
     int num_of_targets;
@@ -363,7 +363,6 @@ int main(void){
 
             array_of_drones = (drone *) malloc (num_of_drones * sizeof(drone));
 
-
         } else if( 3 + num_of_targets + num_of_drones >= line_counter &&  line_counter > 3 + num_of_targets ){
 
             // Get the memory space needed for
@@ -466,9 +465,7 @@ int main(void){
 
             memcpy(&array_of_drones[line_counter - (4 + num_of_targets)], new_drone, sizeof(drone));
             free(new_drone);
-
         }
-
 
         line_counter++;
     }   

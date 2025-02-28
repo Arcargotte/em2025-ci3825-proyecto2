@@ -127,7 +127,7 @@ int main(void){
 
     for(int i = 0; i < num_of_drones; i++){
         for(int j = 0; j < num_of_targets; j++){
-            if(array_of_targets[j].destroyed == false){
+            if(!array_of_targets[j].destroyed){
                 computes_damage(array_of_drones[i], &array_of_targets[j]);
             }
         }

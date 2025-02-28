@@ -159,7 +159,7 @@ void create_threads (pthread_t * array_of_threads, pthread_attr_t * thread_drone
     }
 }
 
-void join_threads (pthread_t * array_of_threads, int num_of_threads){
+void join_threads (pthread_t * array_of_threads){
     /**
      * Por cada uno de los elementos en un arreglo de hilos, ejecutar la función pthread_join() para que el proceso espere a que los hilos terminen ejecución.
      */
@@ -488,7 +488,7 @@ int main(void){
     pthread_attr_init(&thread_drone_attr);
 
     create_threads(array_of_threads, &thread_drone_attr, array_of_drones, arr_of_args_drone, array_of_targets);
-    join_threads(array_of_threads, num_of_drones);
+    join_threads(array_of_threads);
     
     
     //FREE DINAMICALLY ALLOCATED MEMORY FOR THE ARRAY OF DRONES IN arr_of_args_drone

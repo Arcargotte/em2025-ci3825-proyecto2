@@ -169,9 +169,12 @@ void kill_threads(){
 
 int main(void){
     
-    int num_of_drones = 3;
+    int num_of_drones;
     int num_of_targets;
 
+    drone array_of_drones[num_of_drones];
+    target array_of_targets[num_of_targets];
+    
     FILE *txt_file;
     // Opens file with read function
     txt_file = fopen("archivo.txt", "r");
@@ -252,45 +255,47 @@ int main(void){
         } else if( 2 + num_of_targets >= line_counter &&  line_counter > 2){
             
             // Get the memory space needed for
-            int q = 0;
-            while(line[q] != ' '){
-                q++;
+            int i = 0;
+            while(line[i] != ' '){
+                i++;
             }
 
+            const int coord_x_size = i; 
+
             // Get the memory space needed for
-            int j = q + 1;
-            int i = 0;
+            int j = i + 1;
+            i = 0;
             while(line[j] != ' '){
                 j++;
                 i++;
             }
 
+            const int coord_y_size = i;
+
             // Get the memory space needed for
             int k = j + 1;
-            int l = 0;
+            i = 0;
             while(line[k] != '\n'){
                 k++;
-                l++;
+                i++;
             }
 
-            const int coord_x_size = q; 
-            const int coord_y_size = i; 
-            const int resistance_size = k; 
+            const int resistance_size = i; 
 
             char line_x[coord_x_size + 1];
             char line_y[coord_y_size + 1];
             char line_resistance[resistance_size + 1];
 
             // Get the memory space needed for
-            q = 0;
-            while(line[q] != ' '){
-                line_x[q] = line[q];
-                q++;
+            i = 0;
+            while(line[i] != ' '){
+                line_x[i] = line[i];
+                i++;
             }
-            line_x[q] = '\0';
+            line_x[i] = '\0';
 
             // Get the memory space needed for
-            j = q + 1;
+            j = i + 1;
             i = 0;
             while(line[j] != ' '){
                 line_y[i] = line[j];
@@ -301,19 +306,134 @@ int main(void){
 
             // Get the memory space needed for
             k = j + 1;
-            l = 0;
+            i = 0;
             while(line[k] != '\n'){
-                line_resistance[l] = line[k];
+                line_resistance[i] = line[k];
                 k++;
-                l++;
+                i++;
             }
-            line_resistance[l] = '\0';
+            line_resistance[i] = '\0';
 
+            int coord_x = atoi(line_x);  
+            int coord_y = atoi(line_y);
+            int resistance = atoi(line_resistance);
 
+            printf("x: %d\n",  coord_x);
+            printf("Y: %d\n", coord_y);
+            printf("Resistance: %d\n", resistance);
 
-            printf("x: %s\n",  line_x);
-            printf("Y: %s\n", line_y);
-            printf("Resistance: %s\n", line_resistance);
+        } else if( 3 + num_of_targets == line_counter ){
+
+            int i = 0;
+            while(line[i] != '\n'){
+                i++;
+            }
+            const int chars_drone = i;
+            char line_num_of_drones[chars_drone + 1];
+
+            i = 0;
+            while(line[i] != '\n'){
+                line_num_of_drones[i] = line[i];
+                i++;
+            }
+            line_num_of_drones[i] = '\0';
+
+            num_of_drones = atoi(line_num_of_drones);
+
+            printf("Drones: %d\n", num_of_drones);
+
+        } else if( 3 + num_of_targets + num_of_drones >= line_counter &&  line_counter > 3 + num_of_targets ){
+
+            // Get the memory space needed for
+            int i = 0;
+            while(line[i] != ' '){
+                i++;
+            }
+
+            const int coord_x_size = i; 
+
+            // Get the memory space needed for
+            int j = i + 1;
+            i = 0;
+            while(line[j] != ' '){
+                j++;
+                i++;
+            }
+
+            const int coord_y_size = i;
+
+            // Get the memory space needed for
+            int k = j + 1;
+            i = 0;
+            while(line[k] != ' '){
+                k++;
+                i++;
+            }
+
+            const int radius_size = i; 
+
+            // Get the memory space needed for
+            j = k + 1;
+            i = 0;
+            while(line[j] != '\n'){
+                j++;
+                i++;
+            }
+
+            const int power_size = i; 
+
+            char line_x[coord_x_size + 1];
+            char line_y[coord_y_size + 1];
+            char line_radius[radius_size + 1];
+            char line_power[power_size + 1];
+
+            // Get the memory space needed for
+            i = 0;
+            while(line[i] != ' '){
+                line_x[i] = line[i];
+                i++;
+            }
+            line_x[i] = '\0';
+
+            // Get the memory space needed for
+            j = i + 1;
+            i = 0;
+            while(line[j] != ' '){
+                line_y[i] = line[j];
+                j++;
+                i++;
+            }
+            line_y[i] = '\0';
+
+            // Get the memory space needed for
+            k = j + 1;
+            i = 0;
+            while(line[k] != ' '){
+                line_radius[i] = line[k];
+                k++;
+                i++;
+            }
+            line_radius[i] = '\0';
+
+            // Get the memory space needed for
+            j = k + 1;
+            i = 0;
+            while(line[j] != '\n'){
+                line_power[i] = line[j];
+                j++;
+                i++;
+            }
+            line_power[i] = '\0';
+
+            int coord_x = atoi(line_x);  
+            int coord_y = atoi(line_y);
+            int radius = atoi(line_radius);
+            int power = atoi(line_power);
+
+            printf("x: %d\n",  coord_x);
+            printf("Y: %d\n", coord_y);
+            printf("Radius: %d\n", radius);
+            printf("Power: %d\n", power);
 
         }
 
@@ -330,9 +450,6 @@ int main(void){
     }
 
     pthread_t array_of_threads[3];
-
-    drone array_of_drones[num_of_drones];
-    target array_of_targets[num_of_targets];
 
     drone dron1 = {1,2,2,1,1};
     array_of_drones[0] = dron1;

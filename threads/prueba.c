@@ -52,7 +52,7 @@ thread_args_drone * arr_of_args_drone[4];
 
 pthread_mutex_t available;
 
-void computes_damage (drone drone, target * target){
+int computes_damage (drone drone, target * target){
 
     bool hits = false;
     // First Quadrant
@@ -83,37 +83,55 @@ void computes_damage (drone drone, target * target){
 
     if (hits){
         printf("It hits. Current health: %d. Damage done: %d \n", target->health,drone.damage);
-        pthread_mutex_lock(&available);
         if(target->type == 0){
-            target->health = target->health + drone.damage;
-            if(target->health >= 0){
-                target->destroyed = true;
-            }
+            return drone.damage;
         } else{
-            target->health = target->health - drone.damage;
-            if(target->health <= 0){
-                target->destroyed = true;
-            }
+            pthread_mutex_unlock(&available);
+            return -1 * drone.damage;
         }
-        pthread_mutex_unlock(&available);
     } else{
         printf("It doesn't hit.\n");
-
     }
+    return 0;
 }
 
 void * drone_damage_targets (void * args){
     
     thread_args_drone * arguments = (thread_args_drone * ) args;
 
+    // This is an array to save how much damage this drone has done to each target
+    int damage_control_array[num_of_targets];
+    
+    // Initialize array with ceros
+    for (int i = 0; i < num_of_targets; i++) {
+        damage_control_array[i] = 0;
+    }
+
     for(int i = 0; i < arguments->num_of_drones; i++){
         for (int j = 0; j < arguments->num_of_targets; j++){
             if(!arguments->array_of_targets[j].destroyed){
-                computes_damage(arguments->array_of_drones[i], &arguments->array_of_targets[j]);
+                int damage = computes_damage(arguments->array_of_drones[i], &arguments->array_of_targets[j]);
+                damage_control_array[j] += damage;
             }
             printf("Health left: %d\n",arguments->array_of_targets[j].health);
         }
     }
+
+    printf("Arreglo de daño:\n[");
+
+    pthread_mutex_lock(&available);
+
+    for (int i = 0; i < num_of_targets; i++) {
+        arguments->array_of_targets[i].health += damage_control_array[i];
+        printf("%d,", damage_control_array[i]);
+    }
+    printf("]\n");
+
+    pthread_mutex_unlock(&available);
+
+
+
+    
 
     return NULL;
 }
@@ -148,20 +166,6 @@ void calculate_drone_per_thread( int * array_of_drones_for_threads ){
         dif--;
         i++; 
     }
-
-    /*
-    ------------- Debug -----------------
-    printf("[");
-    for(int i = 0; i < num_of_threads; i++){
-        if(i != num_of_threads - 1){
-            printf("%d, ", array_of_drones_for_threads[i]);
-        } else{
-            printf("%d", array_of_drones_for_threads[i]);
-        }
-        
-    }
-    printf("]\n");
-    */
 
 }
 

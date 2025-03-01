@@ -50,7 +50,7 @@ struct thread_args_target{
 
 thread_args_drone * arr_of_args_drone[4];
 
-pthread_mutex_t available;
+pthread_mutex_t available = PTHREAD_MUTEX_INITIALIZER;
 
 int computes_damage (drone drone, target * target){
 
@@ -119,6 +119,7 @@ void * drone_damage_targets (void * args){
     printf("Arreglo de daño:\n[");
 
     pthread_mutex_lock(&available);
+    printf("Bloqueado el Mutex...\n");
 
     for (int i = 0; i < num_of_targets; i++) {
         arguments->array_of_targets[i].health += damage_control_array[i];
@@ -127,6 +128,7 @@ void * drone_damage_targets (void * args){
     printf("]\n");
 
     pthread_mutex_unlock(&available);
+    printf("Desbloqueado el Mutex...\n");
 
     return NULL;
 }
@@ -520,7 +522,7 @@ int main(void){
         fprintf(stderr, "Couldn't initialize mutex\n");
         return 1;
     }
-
+    
     pthread_t array_of_threads[num_of_drones];
 
     pthread_attr_t thread_drone_attr;

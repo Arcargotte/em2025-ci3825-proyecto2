@@ -9,8 +9,8 @@
 
 int main(void){
     
-    int threads = 3;
-    int drones = 9;
+    int threads = 30;
+    int drones = 30;
     int array_of_drones_for_threads[threads];
 
     float drone_per_thread = (float)drones/threads;

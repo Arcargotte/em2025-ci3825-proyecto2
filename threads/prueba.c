@@ -11,7 +11,7 @@ int n = 10;
 int m = 10;
 int num_of_drones;    
 int num_of_targets;
-int num_of_threads = 2;
+int num_of_threads = 5;
 
 typedef struct drone drone;
 struct drone{

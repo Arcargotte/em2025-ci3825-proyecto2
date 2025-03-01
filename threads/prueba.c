@@ -86,7 +86,6 @@ int computes_damage (drone drone, target * target){
         if(target->type == 0){
             return drone.damage;
         } else{
-            pthread_mutex_unlock(&available);
             return -1 * drone.damage;
         }
     } else{
@@ -129,10 +128,6 @@ void * drone_damage_targets (void * args){
 
     pthread_mutex_unlock(&available);
 
-
-
-    
-
     return NULL;
 }
 
@@ -140,11 +135,7 @@ void calculate_drone_per_thread( int * array_of_drones_for_threads ){
 
     float drone_per_thread = (float)num_of_drones/num_of_threads;
 
-    printf("Division: %f\n", drone_per_thread);
-
     int drone_int = (int) drone_per_thread;
-    
-    printf("Parte entera: %d\n", drone_int);
 
     for(int i = 0; i < num_of_threads; i++){
         array_of_drones_for_threads[i] = drone_int;
@@ -153,12 +144,8 @@ void calculate_drone_per_thread( int * array_of_drones_for_threads ){
     // I just need the decimal part
     drone_per_thread = drone_per_thread - drone_int;
 
-    printf("Parte decimal: %f\n", drone_per_thread);
-
     // I just need the decimal part
     int dif = roundf(drone_per_thread * num_of_threads);
-
-    printf("Resto: %d\n", dif);
     
     int i = 0;
     while(dif > 0){

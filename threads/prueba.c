@@ -57,7 +57,7 @@ struct thread_args_target{
 
 
 /* Esta linea esta mal, es importante terminar de trabajar aqui. */
-thread_args_drone * arr_of_args_drone[721];
+thread_args_drone * arr_of_args_drone[2881];
 
 pthread_mutex_t available;
 

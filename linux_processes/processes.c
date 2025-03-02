@@ -4,21 +4,29 @@
 
 int main (void){
     
-    unsigned int num_of_processes = 6;
+    unsigned int num_of_processes = 4 ; //Creates 4 child processes.
     
     pid_t array_of_processes[num_of_processes];
-    
+    pid_t id_process = 1;
+
     for (int i = 0; i < num_of_processes; i++){
-        array_of_processes[i] = fork();
+        if ((int) id_process != 0){
+            id_process = fork();
+        }else {
+            break;
+        }
+
+        array_of_processes[i] = id_process;
     }
 
-    for (int j = 0; j < num_of_processes; j++){
-        if (array_of_processes[j] == 0){
-            printf("This is the parent process with id %d\n", (int) getpid());
-        } else{
-            printf("This is the child process with id %d\n", (int) getpid());
+    if ((int) id_process != 0){
+        printf("This is parent process with id\n");
+        for (int j = 0; j < num_of_processes; j++){
+            printf("Child process %d with id %d\n", j, array_of_processes[j]);
         }
+        return 0;
+    } else{
+        printf("This is child process\n");
+        return 0;
     }
-    
-    return 0;
 }

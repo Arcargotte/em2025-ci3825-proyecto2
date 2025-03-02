@@ -6,12 +6,19 @@
 #include <stdint.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
 
-int n = 10;
-int m = 10;
+int n;
+int m;
 int num_of_drones;    
 int num_of_targets;
-int num_of_threads = 5;
+int num_of_threads = 3;
+
+double get_time() {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return ts.tv_sec + ts.tv_nsec * 1e-9;
+}
 
 typedef struct drone drone;
 struct drone{
@@ -48,7 +55,9 @@ struct thread_args_target{
     int num_of_drones;
 };
 
-thread_args_drone * arr_of_args_drone[4];
+
+/* Esta linea esta mal, es importante terminar de trabajar aqui. */
+thread_args_drone * arr_of_args_drone[31680];
 
 pthread_mutex_t available;
 
@@ -56,7 +65,7 @@ int computes_damage (drone drone, target * target){
 
     bool hits = false;
     // First Quadrant
-    printf("Entra dron %d en (%d,%d) y target en (%d,%d)\n", drone.id,drone.x,drone.y, target->x,target->y);
+    //printf("Entra dron %d en (%d,%d) y target en (%d,%d)\n", drone.id,drone.x,drone.y, target->x,target->y);
     if (drone.x >= target->x && drone.y >= target->y){
         if (drone.x - drone.radius <= target->x && drone.y - drone.radius <= target->y){
             hits = true;
@@ -82,15 +91,12 @@ int computes_damage (drone drone, target * target){
     }
 
     if (hits){
-        printf("It hits. Current health: %d. Damage done: %d \n", target->health,drone.damage);
+        
         if(target->type == 0){
             return drone.damage;
-        } else{
-            pthread_mutex_unlock(&available);
-            return -1 * drone.damage;
         }
-    } else{
-        printf("It doesn't hit.\n");
+        return -1 * drone.damage;
+        
     }
     return 0;
 }
@@ -108,31 +114,40 @@ void * drone_damage_targets (void * args){
     }
 
     for(int i = 0; i < arguments->num_of_drones; i++){
-        for (int j = 0; j < arguments->num_of_targets; j++){
+        for (int j = 0; j < num_of_targets; j++){
             if(!arguments->array_of_targets[j].destroyed){
                 int damage = computes_damage(arguments->array_of_drones[i], &arguments->array_of_targets[j]);
                 damage_control_array[j] += damage;
+
+                if((arguments->array_of_targets[j].type == 0 && abs(damage_control_array[j]) >= abs(arguments->array_of_targets[j].resistance)) || 
+                    (arguments->array_of_targets[j].type == 1 && abs(damage_control_array[j]) >= abs(arguments->array_of_targets[j].resistance))){
+                    arguments->array_of_targets[j].destroyed = true;
+                }
             }
-            printf("Health left: %d\n",arguments->array_of_targets[j].health);
         }
     }
-
-    printf("Arreglo de daño:\n[");
-
-    pthread_mutex_lock(&available);
-
-    for (int i = 0; i < num_of_targets; i++) {
-        arguments->array_of_targets[i].health += damage_control_array[i];
-        printf("%d,", damage_control_array[i]);
-    }
-    printf("]\n");
-
-    pthread_mutex_unlock(&available);
-
-
-
     
-
+    //Blocking others threads to access to the critical section
+    pthread_mutex_lock(&available);
+    for (int i = 0; i < num_of_targets; i++) {
+        
+        if(arguments->array_of_targets[i].type == 0 && !arguments->array_of_targets[i].destroyed){
+            
+            arguments->array_of_targets[i].health += damage_control_array[i];
+            if(arguments->array_of_targets[i].health >= 0){
+                arguments->array_of_targets[i].destroyed = true;
+            }
+        } else if(arguments->array_of_targets[i].type == 1 && !arguments->array_of_targets[i].destroyed){
+            arguments->array_of_targets[i].health += damage_control_array[i];
+            
+            if(arguments->array_of_targets[i].health <= 0){
+                arguments->array_of_targets[i].destroyed = true;
+            }
+        }
+    }
+    pthread_mutex_unlock(&available);
+    //Unblocking others threads to access to the critical section
+    
     return NULL;
 }
 
@@ -140,11 +155,7 @@ void calculate_drone_per_thread( int * array_of_drones_for_threads ){
 
     float drone_per_thread = (float)num_of_drones/num_of_threads;
 
-    printf("Division: %f\n", drone_per_thread);
-
     int drone_int = (int) drone_per_thread;
-    
-    printf("Parte entera: %d\n", drone_int);
 
     for(int i = 0; i < num_of_threads; i++){
         array_of_drones_for_threads[i] = drone_int;
@@ -153,13 +164,9 @@ void calculate_drone_per_thread( int * array_of_drones_for_threads ){
     // I just need the decimal part
     drone_per_thread = drone_per_thread - drone_int;
 
-    printf("Parte decimal: %f\n", drone_per_thread);
-
     // I just need the decimal part
     int dif = roundf(drone_per_thread * num_of_threads);
 
-    printf("Resto: %d\n", dif);
-    
     int i = 0;
     while(dif > 0){
         array_of_drones_for_threads[i]++;
@@ -180,27 +187,20 @@ void create_threads (pthread_t * array_of_threads, pthread_attr_t * thread_drone
         /*ASIGNA MEMORIA DINÁMICAMENTE*/
         thread_args_drone * arg = malloc(sizeof(thread_args_drone));
         if (arg == NULL){
-            printf("Failed allocating dynamic memory!");
+            printf("ERROR: Failed allocating dynamic memory!");
             return;
         }
 
         arg->array_of_drones = (drone *) malloc(array_of_drones_for_threads[i] * sizeof(drone));
         if (!arg->array_of_drones) {
-            perror("Error al asignar memoria");
+            perror("ERROR: Failed allocating dynamic memory!");
             exit(EXIT_FAILURE);
         }
 
         for(int k = 0; k < array_of_drones_for_threads[i]; k++){
-            printf("Entro dron %d en hilo %d.\n", array_of_drones[j].id, i);
             arg->array_of_drones[k] = array_of_drones[j];
             j++;
         }
-
-        printf("Sub-Arreglo contiene:");
-        for(int k = 0; k < array_of_drones_for_threads[i]; k++){
-            printf(" dron %d,", arg->array_of_drones[k].id);
-        }
-        printf("\n");
         
         arg->array_of_targets = array_of_targets;
         arg->num_of_targets = num_of_targets;
@@ -229,9 +229,13 @@ void kill_threads(){
 
 int main(void){
 
+    double start = get_time();
+
     drone * array_of_drones;
     target * array_of_targets;
-    
+
+    // --------------------------------------------------------
+
     FILE *txt_file;
     // Opens file with read function
     txt_file = fopen("archivo.txt", "r");
@@ -248,13 +252,13 @@ int main(void){
     while (fgets(line, sizeof(line), txt_file) != NULL) {
         
         if(line_counter == 1){
-            // Get the memory space needed for
+            // Get the memory space needed for the rows
             int q = 0;
             while(line[q] != ' '){
                 q++;
             }
 
-            // Get the memory space needed for
+            // Get the memory space needed for the columns
             int j = q + 1;
             int i = 0;
             while(line[j] != '\n'){
@@ -284,11 +288,8 @@ int main(void){
             }
             line_columns[i] = '\0';
 
-            int rows = atoi(line_rows);  
-            int columns = atoi(line_columns);
-
-            printf("Rows: %d\n", rows);
-            printf("Columns: %d\n", columns);
+            n = atoi(line_rows);  
+            m = atoi(line_columns);
 
         } else if (line_counter == 2){
             int i = 0;
@@ -306,8 +307,6 @@ int main(void){
             line_num_of_targets[i] = '\0';
 
             num_of_targets = atoi(line_num_of_targets);
-
-            printf("Targets: %d\n", num_of_targets);
 
             array_of_targets = (target *) malloc (num_of_targets * sizeof(target));
 
@@ -377,10 +376,6 @@ int main(void){
             int coord_y = atoi(line_y);
             int resistance = atoi(line_resistance);
 
-            printf("X: %d\n",  coord_x);
-            printf("Y: %d\n", coord_y);
-            printf("Resistance: %d\n", resistance);
-
             target * new_target = (target *) malloc (sizeof(target));
             new_target->x = coord_x;
             new_target->y = coord_y;
@@ -414,8 +409,6 @@ int main(void){
             line_num_of_drones[i] = '\0';
 
             num_of_drones = atoi(line_num_of_drones);
-
-            printf("Drones: %d\n", num_of_drones);
 
             array_of_drones = (drone *) malloc (num_of_drones * sizeof(drone));
 
@@ -507,11 +500,6 @@ int main(void){
             int radius = atoi(line_radius);
             int power = atoi(line_power);
 
-            printf("X: %d\n",  coord_x);
-            printf("Y: %d\n", coord_y);
-            printf("Radius: %d\n", radius);
-            printf("Power: %d\n", power);
-
             drone * new_drone = (drone *) malloc (sizeof(drone));
             new_drone->x = coord_x;
             new_drone->y = coord_y;
@@ -524,7 +512,7 @@ int main(void){
         }
 
         line_counter++;
-    }   
+    }  
 
     // Close file
     fclose(txt_file);
@@ -540,10 +528,15 @@ int main(void){
 
     pthread_attr_init(&thread_drone_attr);
 
+    double start_threads = get_time();
     create_threads(array_of_threads, &thread_drone_attr, array_of_drones, arr_of_args_drone, array_of_targets);
     join_threads(array_of_threads);
     
-    
+    double end_threads = get_time();
+
+    printf("Tiempo de ejecución de hilos: %.6f segundos\n", end_threads - start_threads);
+
+
     //FREE DINAMICALLY ALLOCATED MEMORY FOR THE ARRAY OF DRONES IN arr_of_args_drone
     for (int i = 0; i < num_of_threads; i++){
         free(arr_of_args_drone[i]->array_of_drones);
@@ -557,13 +550,44 @@ int main(void){
     //FREE DYNAMICALLY ALLOCATED MEMORY FOR ARGUMENTS IN ARRAY OF ARGUMENTS (DRONES AND TARGETS)
     pthread_attr_destroy(&thread_drone_attr);
 
-    /*PRUEBA*/
-    printf("\n");
+
+    int om_destroyed_targets = 0;
+    int om_parcially_destroyed_targets = 0;
+    int om_intact_targets = 0;
+    int ic_destroyed_targets = 0;
+    int ic_parcially_destroyed_targets = 0;
+    int ic_intact_targets = 0;
+
     for (int i = 0; i < num_of_targets; i++){
-        printf("target %d en posicion (%d,%d) tiene health %d \n",array_of_targets[i].id,array_of_targets[i].x, array_of_targets[i].y, array_of_targets[i].health);
+        if(array_of_targets[i].type == 0 && !array_of_targets[i].destroyed){
+            if(array_of_targets[i].resistance == array_of_targets[i].health){
+                om_intact_targets++;
+            } else{
+                om_parcially_destroyed_targets++;
+            }
+        } else if(array_of_targets[i].type == 0 && array_of_targets[i].destroyed){
+            om_destroyed_targets++;
+        } else if(array_of_targets[i].type == 1 && !array_of_targets[i].destroyed){
+            if(array_of_targets[i].resistance == array_of_targets[i].health){
+                ic_intact_targets++;
+            } else{
+                ic_parcially_destroyed_targets++;
+            }
+        } else if(array_of_targets[i].type == 1 && array_of_targets[i].destroyed){
+            ic_destroyed_targets++;
+        }
     }
+
+    printf("OM sin destruir: %d \nOM parcialmente destruidos: %d \nOM totalmente destruido: %d\n", om_intact_targets, om_parcially_destroyed_targets, om_destroyed_targets);
+    printf("IC sin destruir: %d \nIC parcialmente destruidos: %d \nIC totalmente destruido: %d\n", ic_intact_targets, ic_parcially_destroyed_targets, ic_destroyed_targets);
+    
     free(array_of_targets);
     free(array_of_drones);
+
+    pthread_mutex_destroy(&available);
+
+    double end = get_time();
+    printf("Tiempo de ejecución: %.6f segundos\n", end - start);
 
     return 0;
 }

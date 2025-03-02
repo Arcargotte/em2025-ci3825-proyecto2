@@ -6,8 +6,8 @@
 #include <stdint.h>
 #include <time.h>
 
-int n = 10;
-int m = 10;
+int n;
+int m;
 int num_of_drones;
 int num_of_targets;
 
@@ -49,7 +49,7 @@ void computes_damage (drone drone, target * target){
 
     bool hits = false;
     // First Quadrant
-    printf("Entra dron %d en (%d,%d) y target en (%d,%d)\n", drone.id,drone.x,drone.y, target->x,target->y);
+    //printf("Entra dron %d en (%d,%d) y target en (%d,%d)\n", drone.id,drone.x,drone.y, target->x,target->y);
     if (drone.x >= target->x && drone.y >= target->y){
         if (drone.x - drone.radius <= target->x && drone.y - drone.radius <= target->y){
             hits = true;
@@ -75,8 +75,6 @@ void computes_damage (drone drone, target * target){
     }
 
     if (hits){
-        printf("It hits. Current health: %d. Damage done: %d \n", target->health,drone.damage);
-        
         if(target->type == 0){
             target->health = target->health + drone.damage;
             if(target->health >= 0){
@@ -88,9 +86,6 @@ void computes_damage (drone drone, target * target){
                 target->destroyed = true;
             }
         }
-    } else{
-        printf("It doesn't hit.\n");
-
     }
 }
 
@@ -100,7 +95,6 @@ void * drone_damage_targets (void * args){
 
     for (int j = 0; j < arguments->num_of_targets; j++){
         computes_damage(arguments->drone, &arguments->array_of_targets[j]);
-        printf("Health left: %d\n",arguments->array_of_targets[j].health);
     }
 
     return NULL;
@@ -168,11 +162,8 @@ int main(void){
             }
             line_columns[i] = '\0';
 
-            int rows = atoi(line_rows);  
-            int columns = atoi(line_columns);
-
-            printf("Rows: %d\n", rows);
-            printf("Columns: %d\n", columns);
+            m = atoi(line_rows);  
+            n = atoi(line_columns);
 
         } else if (line_counter == 2){
             int i = 0;
@@ -190,8 +181,6 @@ int main(void){
             line_num_of_targets[i] = '\0';
 
             num_of_targets = atoi(line_num_of_targets);
-
-            printf("Targets: %d\n", num_of_targets);
 
             array_of_targets = (target *) malloc (num_of_targets * sizeof(target));
 
@@ -406,15 +395,40 @@ int main(void){
             }
         }
     }
-    
-    /*PRUEBA*/
-    printf("\n");
-    for (int i = 0; i < num_of_targets; i++){
-        printf("target en posicion (%d,%d) tiene health %d \n",array_of_targets[i].x, array_of_targets[i].y, array_of_targets[i].health);
-    }
 
     free(array_of_targets);
     free(array_of_drones);
+
+    int om_destroyed_targets = 0;
+    int om_parcially_destroyed_targets = 0;
+    int om_intact_targets = 0;
+    int ic_destroyed_targets = 0;
+    int ic_parcially_destroyed_targets = 0;
+    int ic_intact_targets = 0;
+
+    for (int i = 0; i < num_of_targets; i++){
+        if(array_of_targets[i].type == 0 && !array_of_targets[i].destroyed){
+            if(array_of_targets[i].resistance == array_of_targets[i].health){
+                om_intact_targets++;
+            } else{
+                om_parcially_destroyed_targets++;
+            }
+        } else if(array_of_targets[i].type == 0 && array_of_targets[i].destroyed){
+            om_destroyed_targets++;
+        } else if(array_of_targets[i].type == 1 && !array_of_targets[i].destroyed){
+            if(array_of_targets[i].resistance == array_of_targets[i].health){
+                ic_intact_targets++;
+            } else{
+                ic_parcially_destroyed_targets++;
+            }
+        } else if(array_of_targets[i].type == 1 && array_of_targets[i].destroyed){
+            ic_destroyed_targets++;
+        }
+    }
+
+    printf("OM sin destruir: %d \nOM parcialmente destruidos: %d \nOM totalmente destruido: %d\n", om_intact_targets, om_parcially_destroyed_targets, om_destroyed_targets);
+    printf("IC sin destruir: %d \nIC parcialmente destruidos: %d \nIC totalmente destruido: %d\n", ic_intact_targets, ic_parcially_destroyed_targets, ic_destroyed_targets);
+    
 
     double end = get_time();
     printf("Tiempo de ejecución: %.6f segundos\n", end - start);

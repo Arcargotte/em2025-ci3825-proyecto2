@@ -389,6 +389,7 @@ int main(void){
         line_counter++;
     }   
 
+    double start_threads = get_time();
     for(int i = 0; i < num_of_drones; i++){
         for(int j = 0; j < num_of_targets; j++){
             if(!array_of_targets[j].destroyed){
@@ -396,6 +397,9 @@ int main(void){
             }
         }
     }
+    double end_threads = get_time();
+
+    printf("Tiempo de ejecucion de iteracion: %.6f segundos\n", end_threads - start_threads);
 
     free(array_of_targets);
     free(array_of_drones);

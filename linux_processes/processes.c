@@ -18,6 +18,8 @@
 int n = 10;
 int m = 10;
 
+int num_of_processes = 4 ; //Creates 4 child processes.
+
 int num_of_drones;
 int num_of_targets;
 
@@ -43,6 +45,8 @@ struct target{
 
 drone * array_of_drones;
 target * array_of_targets;
+
+pthread_mutex_t * available;
 
 void parse_input(){
     FILE *txt_file;
@@ -100,9 +104,6 @@ void parse_input(){
             int rows = atoi(line_rows);  
             int columns = atoi(line_columns);
 
-            printf("Rows: %d\n", rows);
-            printf("Columns: %d\n", columns);
-
         } else if (line_counter == 2){
             int i = 0;
             while(line[i] != '\n'){
@@ -119,8 +120,6 @@ void parse_input(){
             line_num_of_targets[i] = '\0';
 
             num_of_targets = atoi(line_num_of_targets);
-
-            printf("Targets: %d\n", num_of_targets);
 
             array_of_targets = (target *) malloc (num_of_targets * sizeof(target));
 
@@ -190,10 +189,6 @@ void parse_input(){
             int coord_y = atoi(line_y);
             int resistance = atoi(line_resistance);
 
-            printf("X: %d\n",  coord_x);
-            printf("Y: %d\n", coord_y);
-            printf("Resistance: %d\n", resistance);
-
             target * new_target = (target *) malloc (sizeof(target));
             new_target->x = coord_x;
             new_target->y = coord_y;
@@ -227,8 +222,6 @@ void parse_input(){
             line_num_of_drones[i] = '\0';
 
             num_of_drones = atoi(line_num_of_drones);
-
-            printf("Drones: %d\n", num_of_drones);
 
             array_of_drones = (drone *) malloc (num_of_drones * sizeof(drone));
 
@@ -320,11 +313,6 @@ void parse_input(){
             int radius = atoi(line_radius);
             int power = atoi(line_power);
 
-            printf("X: %d\n",  coord_x);
-            printf("Y: %d\n", coord_y);
-            printf("Radius: %d\n", radius);
-            printf("Power: %d\n", power);
-
             drone * new_drone = (drone *) malloc (sizeof(drone));
             new_drone->x = coord_x;
             new_drone->y = coord_y;
@@ -343,14 +331,103 @@ void parse_input(){
     fclose(txt_file);
 }
 
+void calculate_drone_per_thread( int * array_of_drones_per_threads ){
+
+    float drone_per_thread = (float)num_of_drones/num_of_processes;
+
+    int drone_int = (int) drone_per_thread;
+
+    for(int i = 0; i < num_of_processes; i++){
+        array_of_drones_per_threads[i] = drone_int;
+    }
+
+    // I just need the decimal part
+    drone_per_thread = drone_per_thread - drone_int;
+
+    // I just need the decimal part
+    int dif = roundf(drone_per_thread * num_of_processes);
+
+    int i = 0;
+    while(dif > 0){
+        array_of_drones_per_threads[i]++;
+        dif--;
+        i++; 
+    }
+
+}
+
+void computes_damage (drone drone, target * target){
+
+    bool hits = false;
+    // First Quadrant
+    //printf("Entra dron %d en (%d,%d) y target en (%d,%d)\n", drone.id,drone.x,drone.y, target->x,target->y);
+    if (drone.x >= target->x && drone.y >= target->y){
+        if (drone.x - drone.radius <= target->x && drone.y - drone.radius <= target->y){
+            hits = true;
+        }
+    }
+    //Second Quadrant
+    else if (drone.x < target->x && drone.y > target->y){
+        if(drone.x + drone.radius >= target->x && drone.y - drone.radius <= target->y){
+            hits = true;
+        }
+    }
+    //Third Quadrant
+    else if (drone.x > target->x && drone.y < target->y){
+        if(drone.x - drone.radius <= target->x && drone.y + drone.radius >= target->y){
+            hits = true;
+        }
+    }
+    //Fourth Quadrant
+    else if (drone.x <= target->x && drone.y <= target->y){
+        if(drone.x + drone.radius >= target->x && drone.y + drone.radius >= target->y){
+            hits = true;
+        }
+    }
+
+    if (hits){
+        pthread_mutex_lock(available);
+        if(target->type == 0){
+            target->health = target->health + drone.damage;
+            if(target->health >= 0){
+                target->destroyed = true;
+            }
+        } else{
+            target->health = target->health - drone.damage;
+            if(target->health <= 0){
+                target->destroyed = true;
+            }
+        }
+        pthread_mutex_unlock(available);
+    }
+}
+
 int main (void){
-    
-    int num_of_processes = 4 ; //Creates 4 child processes.
-    
+        
     // SHARED ANONYMOUS MEMORY SPACE
+
+    available = (pthread_mutex_t *) mmap(NULL, sizeof(pthread_mutex_t),
+                             PROT_READ | PROT_WRITE,
+                             MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    if (available == MAP_FAILED) {
+        perror("mmap");
+        exit(EXIT_FAILURE);
+    }
+
+    // Inicializar atributos del mutex
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_init(&attr);
+    pthread_mutexattr_setpshared(&attr, PTHREAD_PROCESS_SHARED);
+
+    // Inicializar el mutex en la memoria compartida
+    if (pthread_mutex_init(available, &attr) != 0) {
+        perror("pthread_mutex_init");
+        exit(EXIT_FAILURE);
+    }
+
     pid_t array_of_processes[num_of_processes];
 
-    array_of_targets = (target *) mmap(NULL, 4 * sizeof(target),
+    target * shared_array_of_targets = (target *) mmap(NULL, 4 * sizeof(target),
                              PROT_READ | PROT_WRITE,
                              MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     if (array_of_targets == MAP_FAILED) {
@@ -360,9 +437,27 @@ int main (void){
 
     parse_input();
 
+    int array_of_drones_per_process[num_of_processes];
+
+    calculate_drone_per_thread(array_of_drones_per_process);
+
+    for (int i = 0; i < num_of_targets; i++){
+        shared_array_of_targets[i].id = array_of_targets[i].id;
+        shared_array_of_targets[i].health = array_of_targets[i].health;
+        shared_array_of_targets[i].resistance = array_of_targets[i].resistance;
+        shared_array_of_targets[i].type = array_of_targets[i].type;
+        shared_array_of_targets[i].destroyed = array_of_targets[i].destroyed;
+        shared_array_of_targets[i].x = array_of_targets[i].x;
+        shared_array_of_targets[i].y = array_of_targets[i].y;
+
+    }
+    
     pid_t id_process = 1;
 
-    for (int i = 0; i < num_of_processes; i++){
+    int process_iter = -1;
+
+    for (int k = 0; k < num_of_processes; k++){
+        process_iter++;
         id_process = fork();
 
         if ((int) id_process < 0){
@@ -370,44 +465,56 @@ int main (void){
             return 1;
         }
         if (id_process == 0) {
-            printf("This is child process %d\n", getpid());
-            int damage_caused = 500;
-            for (int i = 0; i < num_of_targets; i++){
-                memcpy(&(array_of_targets[i].health), damage_caused, sizeof(int));
-                //array_of_targets[i].health = array_of_targets[i].health - 1;
+            for(int i = 0; i < array_of_drones_per_process[process_iter]; i++){
+                for (int j = 0; j < num_of_targets; j++){
+                    if(!shared_array_of_targets[j].destroyed){
+                        computes_damage(array_of_drones[i + process_iter * array_of_drones_per_process[process_iter]], &shared_array_of_targets[j]);
+                    }
+                }
             }
-            printf("Child process is DEAD\n");
             fflush(stdout);  // Forzar salida inmediata
             exit(0);
         }
 
-        array_of_processes[i] = id_process;
-    }
-
-
-    printf("This is parent process with id %d\n", getpid());
-
-    for (int i = 0; i < num_of_targets; i++){
-        printf("BEFORE DRONE ATTACK\nTARGET %d HEALTH %d\n",array_of_targets[i].id, array_of_targets[i].health);
+        array_of_processes[k] = id_process;
     }
 
     while (wait(NULL) > 0);
 
+
+    free(array_of_targets);
+    free(array_of_drones);
+
+    int om_destroyed_targets = 0;
+    int om_parcially_destroyed_targets = 0;
+    int om_intact_targets = 0;
+    int ic_destroyed_targets = 0;
+    int ic_parcially_destroyed_targets = 0;
+    int ic_intact_targets = 0;
+
     for (int i = 0; i < num_of_targets; i++){
-        printf("AFTER DRONE ATTACK \n TARGET %d HEALTH %d\n",array_of_targets[i].id, array_of_targets[i].health);
+        if(shared_array_of_targets[i].type == 0 && !shared_array_of_targets[i].destroyed){
+            if(shared_array_of_targets[i].resistance == shared_array_of_targets[i].health){
+                om_intact_targets++;
+            } else{
+                om_parcially_destroyed_targets++;
+            }
+        } else if(shared_array_of_targets[i].type == 0 && shared_array_of_targets[i].destroyed){
+            om_destroyed_targets++;
+        } else if(shared_array_of_targets[i].type == 1 && !shared_array_of_targets[i].destroyed){
+            if(shared_array_of_targets[i].resistance == shared_array_of_targets[i].health){
+                ic_intact_targets++;
+            } else{
+                ic_parcially_destroyed_targets++;
+            }
+        } else if(shared_array_of_targets[i].type == 1 && shared_array_of_targets[i].destroyed){
+            ic_destroyed_targets++;
+        }
     }
 
-    return 0;
+    printf("OM sin destruir: %d \nOM parcialmente destruidos: %d \nOM totalmente destruido: %d\n", om_intact_targets, om_parcially_destroyed_targets, om_destroyed_targets);
+    printf("IC sin destruir: %d \nIC parcialmente destruidos: %d \nIC totalmente destruido: %d\n", ic_intact_targets, ic_parcially_destroyed_targets, ic_destroyed_targets);
     
-    // } else{
-    //     printf("This is child process %d\n", getpid());
-    //     int damage_caused = 500;
-    //     for (int i = 0; i < num_of_targets; i++){
-    //         // memcpy(array_of_targets[i].health, damage_caused, sizeof(int));
-    //         array_of_targets[i].health--;
-    //     }
-    //     printf("Child process is DEAD\n");
-    //     fflush(stdout);  // Forzar salida inmediata
-    //     exit(0);
-    // }
+
+    return 0;
 }

@@ -108,6 +108,12 @@ void * drone_damage_targets (void * args){
     }
     
     for(int i = 0; i < arguments->num_of_drones; i++){
+        double x = 0.0;
+        // Trabajo intensivo en CPU
+        for (long j = 0; j < 10000; j++) {
+            x += (double)j / (j + 1); // Cálculo simple pero pesado
+        }
+        
         for (int j = 0; j < num_of_targets; j++){
             if(!arguments->array_of_targets[j].destroyed){
                 int damage = computes_damage(arguments->array_of_drones[i], &arguments->array_of_targets[j]);
@@ -124,7 +130,7 @@ void * drone_damage_targets (void * args){
     //Blocking others threads to access to the critical section
     pthread_mutex_lock(&available);
     for (int i = 0; i < num_of_targets; i++) {
-        
+
         if(arguments->array_of_targets[i].type == 0 && !arguments->array_of_targets[i].destroyed){
             
             arguments->array_of_targets[i].health += damage_control_array[i];
@@ -142,6 +148,8 @@ void * drone_damage_targets (void * args){
     pthread_mutex_unlock(&available);
     //Unblocking others threads to access to the critical section
     
+    
+
     pthread_exit(0);
     return NULL;
 }

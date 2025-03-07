@@ -18,7 +18,7 @@
 int n = 10;
 int m = 10;
 
-int num_of_processes = 4 ; //Creates 4 child processes.
+int num_of_processes = 2 ; //Creates 4 child processes.
 
 int num_of_drones;
 int num_of_targets;
@@ -101,8 +101,8 @@ void parse_input(){
             }
             line_columns[i] = '\0';
 
-            int rows = atoi(line_rows);  
-            int columns = atoi(line_columns);
+            m = atoi(line_rows);  
+            n = atoi(line_columns);
 
         } else if (line_counter == 2){
             int i = 0;
@@ -515,6 +515,7 @@ int main (void){
     printf("OM sin destruir: %d \nOM parcialmente destruidos: %d \nOM totalmente destruido: %d\n", om_intact_targets, om_parcially_destroyed_targets, om_destroyed_targets);
     printf("IC sin destruir: %d \nIC parcialmente destruidos: %d \nIC totalmente destruido: %d\n", ic_intact_targets, ic_parcially_destroyed_targets, ic_destroyed_targets);
     
+    printf("El primer elemento es: %d\n", array_of_processes[0]);
 
     return 0;
 }

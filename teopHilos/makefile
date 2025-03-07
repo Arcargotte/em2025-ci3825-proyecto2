@@ -7,8 +7,8 @@ CFLAGS= 	-Wall -Wextra -Wdouble-promotion -Wno-unused-function -Wno-sign-convers
 
 ### COMPILACION ###
 
-PROG= 	prueba
-SRC= 	prueba.c
+PROG= 	threads
+SRC= 	threads.c
 LIBS=	-pthread 
 
 $(PROG): 	$(SRC)

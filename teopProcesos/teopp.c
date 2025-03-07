@@ -18,7 +18,7 @@
 int n = 10;
 int m = 10;
 
-int num_of_processes = 2 ; //Creates 4 child processes.
+int num_of_processes = 3 ; //Creates 4 child processes.
 
 int num_of_drones;
 int num_of_targets;

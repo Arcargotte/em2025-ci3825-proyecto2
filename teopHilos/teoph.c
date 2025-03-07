@@ -12,7 +12,7 @@ int n;
 int m;
 int num_of_drones;    
 int num_of_targets;
-int num_of_threads = 3;
+int num_of_threads = 2;
 
 typedef struct drone drone;
 struct drone{
@@ -521,7 +521,7 @@ int main(void){
     pthread_attr_init(&thread_drone_attr);
 
     create_threads(array_of_threads, &thread_drone_attr, array_of_drones, arr_of_args_drone, array_of_targets);
-    join_threads(array_of_threads);
+    //join_threads(array_of_threads);
 
     //FREE DINAMICALLY ALLOCATED MEMORY FOR THE ARRAY OF DRONES IN arr_of_args_drone
     for (int i = 0; i < num_of_threads; i++){
@@ -532,7 +532,7 @@ int main(void){
     for (int i = 0; i < num_of_drones; i++){
         free(arr_of_args_drone[i]);
     }
-
+    
     //FREE DYNAMICALLY ALLOCATED MEMORY FOR ARGUMENTS IN ARRAY OF ARGUMENTS (DRONES AND TARGETS)
     pthread_attr_destroy(&thread_drone_attr);
 

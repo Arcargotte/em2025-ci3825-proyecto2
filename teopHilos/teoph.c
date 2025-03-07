@@ -142,6 +142,7 @@ void * drone_damage_targets (void * args){
     pthread_mutex_unlock(&available);
     //Unblocking others threads to access to the critical section
     
+    pthread_exit(0);
     return NULL;
 }
 

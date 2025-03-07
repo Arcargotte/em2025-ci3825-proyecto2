@@ -14,12 +14,6 @@ int num_of_drones;
 int num_of_targets;
 int num_of_threads = 3;
 
-double get_time() {
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    return ts.tv_sec + ts.tv_nsec * 1e-9;
-}
-
 typedef struct drone drone;
 struct drone{
     int x;
@@ -228,8 +222,6 @@ void kill_threads(){
 }
 
 int main(void){
-
-    double start = get_time();
 
     drone * array_of_drones;
     target * array_of_targets;
@@ -528,14 +520,8 @@ int main(void){
 
     pthread_attr_init(&thread_drone_attr);
 
-    double start_threads = get_time();
     create_threads(array_of_threads, &thread_drone_attr, array_of_drones, arr_of_args_drone, array_of_targets);
     join_threads(array_of_threads);
-    
-    double end_threads = get_time();
-
-    printf("Tiempo de ejecución de hilos: %.6f segundos\n", end_threads - start_threads);
-
 
     //FREE DINAMICALLY ALLOCATED MEMORY FOR THE ARRAY OF DRONES IN arr_of_args_drone
     for (int i = 0; i < num_of_threads; i++){
@@ -550,13 +536,8 @@ int main(void){
     //FREE DYNAMICALLY ALLOCATED MEMORY FOR ARGUMENTS IN ARRAY OF ARGUMENTS (DRONES AND TARGETS)
     pthread_attr_destroy(&thread_drone_attr);
 
-
-    int om_destroyed_targets = 0;
-    int om_parcially_destroyed_targets = 0;
-    int om_intact_targets = 0;
-    int ic_destroyed_targets = 0;
-    int ic_parcially_destroyed_targets = 0;
-    int ic_intact_targets = 0;
+    int om_destroyed_targets = 0, om_parcially_destroyed_targets = 0, om_intact_targets = 0,
+        ic_destroyed_targets = 0, ic_parcially_destroyed_targets = 0, ic_intact_targets = 0;
 
     for (int i = 0; i < num_of_targets; i++){
         if(array_of_targets[i].type == 0 && !array_of_targets[i].destroyed){
@@ -585,9 +566,6 @@ int main(void){
     free(array_of_drones);
 
     pthread_mutex_destroy(&available);
-
-    double end = get_time();
-    printf("Tiempo de ejecución: %.6f segundos\n", end - start);
 
     return 0;
 }

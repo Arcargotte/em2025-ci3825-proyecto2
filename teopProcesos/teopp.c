@@ -485,12 +485,8 @@ int main (void){
     free(array_of_targets);
     free(array_of_drones);
 
-    int om_destroyed_targets = 0;
-    int om_parcially_destroyed_targets = 0;
-    int om_intact_targets = 0;
-    int ic_destroyed_targets = 0;
-    int ic_parcially_destroyed_targets = 0;
-    int ic_intact_targets = 0;
+    int om_destroyed_targets = 0, om_parcially_destroyed_targets = 0, om_intact_targets = 0,
+        ic_destroyed_targets = 0, ic_parcially_destroyed_targets = 0, ic_intact_targets = 0;
 
     for (int i = 0; i < num_of_targets; i++){
         if(shared_array_of_targets[i].type == 0 && !shared_array_of_targets[i].destroyed){

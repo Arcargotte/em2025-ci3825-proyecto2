@@ -12,12 +12,6 @@ int m;
 int num_of_drones;
 int num_of_targets;
 
-double get_time() {
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    return ts.tv_sec + ts.tv_nsec * 1e-9;
-}
-
 typedef struct drone drone;
 struct drone{
     int x;
@@ -105,8 +99,6 @@ drone * array_of_drones;
 target * array_of_targets;
 
 int main(void){
-    
-    double start = get_time();
 
     num_of_drones = 3;
     num_of_targets = 4;
@@ -389,7 +381,6 @@ int main(void){
         line_counter++;
     }   
 
-    double start_threads = get_time();
     for(int i = 0; i < num_of_drones; i++){
         for(int j = 0; j < num_of_targets; j++){
             if(!array_of_targets[j].destroyed){
@@ -397,20 +388,13 @@ int main(void){
             }
         }
     }
-    double end_threads = get_time();
-
-    printf("Tiempo de ejecucion de iteracion: %.6f segundos\n", end_threads - start_threads);
-
+    
     free(array_of_targets);
     free(array_of_drones);
 
-    int om_destroyed_targets = 0;
-    int om_parcially_destroyed_targets = 0;
-    int om_intact_targets = 0;
-    int ic_destroyed_targets = 0;
-    int ic_parcially_destroyed_targets = 0;
-    int ic_intact_targets = 0;
-
+    int om_destroyed_targets = 0, om_parcially_destroyed_targets = 0, om_intact_targets = 0,
+        ic_destroyed_targets = 0, ic_parcially_destroyed_targets = 0, ic_intact_targets = 0;
+    
     for (int i = 0; i < num_of_targets; i++){
         if(array_of_targets[i].type == 0 && !array_of_targets[i].destroyed){
             if(array_of_targets[i].resistance == array_of_targets[i].health){
@@ -434,9 +418,5 @@ int main(void){
     printf("OM sin destruir: %d \nOM parcialmente destruidos: %d \nOM totalmente destruido: %d\n", om_intact_targets, om_parcially_destroyed_targets, om_destroyed_targets);
     printf("IC sin destruir: %d \nIC parcialmente destruidos: %d \nIC totalmente destruido: %d\n", ic_intact_targets, ic_parcially_destroyed_targets, ic_destroyed_targets);
     
-
-    double end = get_time();
-    printf("Tiempo de ejecución: %.6f segundos\n", end - start);
-
     return 0;
 }

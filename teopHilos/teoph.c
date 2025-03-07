@@ -12,7 +12,7 @@ int n;
 int m;
 int num_of_drones;    
 int num_of_targets;
-int num_of_threads = 2;
+int num_of_threads = 3;
 
 typedef struct drone drone;
 struct drone{
@@ -106,7 +106,7 @@ void * drone_damage_targets (void * args){
     for (int i = 0; i < num_of_targets; i++) {
         damage_control_array[i] = 0;
     }
-
+    
     for(int i = 0; i < arguments->num_of_drones; i++){
         for (int j = 0; j < num_of_targets; j++){
             if(!arguments->array_of_targets[j].destroyed){

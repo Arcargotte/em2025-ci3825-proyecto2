@@ -158,12 +158,6 @@ void * drone_damage_targets (void * args){
     }
     
     for(int i = 0; i < arguments->num_of_drones; i++){
-        double x = 0.0;
-        // Trabajo intensivo en CPU
-        for (long j = 0; j < 10000; j++) {
-            x += (double)j / (j + 1); // Cálculo simple pero pesado
-        }
-        
         for (int j = 0; j < num_of_targets; j++){
             if(!arguments->array_of_targets[j].destroyed){
                 int damage = computes_damage(arguments->array_of_drones[i], &arguments->array_of_targets[j]);

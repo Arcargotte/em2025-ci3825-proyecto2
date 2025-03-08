@@ -223,11 +223,6 @@ int main(void){
         printf("Es mejor no hacer matriz\n");
 
         for(int i = 0; i < num_of_drones; i++){
-            double x = 0.0;
-            // Trabajo intensivo en CPU
-            for (long j = 0; j < 10000; j++) {
-                x += (double)j / (j + 1); // Cálculo simple pero pesado
-            }
             for(int j = 0; j < num_of_targets; j++){
                 if(!array_of_targets[j].destroyed){
                     computes_damage(array_of_drones[i], &array_of_targets[j]);

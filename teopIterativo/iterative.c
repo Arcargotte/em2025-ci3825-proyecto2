@@ -12,6 +12,8 @@ int m;
 int num_of_drones;
 int num_of_targets;
 
+int work_if_matrix = 0;
+
 typedef struct drone drone;
 struct drone{
     int x;
@@ -30,15 +32,7 @@ struct target{
     int id;
     bool destroyed;
     int type;
-};
-
-typedef struct thread_args_drone thread_args_drone;
-struct thread_args_drone{
-    drone drone;
-    target * array_of_targets;
-    int num_of_targets;
-};
-
+}; 
 
 void computes_damage (drone drone, target * target){
 
@@ -84,24 +78,43 @@ void computes_damage (drone drone, target * target){
     }
 }
 
-void * drone_damage_targets (void * args){
-    
-    thread_args_drone * arguments = (thread_args_drone * ) args;
-
-    for (int j = 0; j < arguments->num_of_targets; j++){
-        computes_damage(arguments->drone, &arguments->array_of_targets[j]);
-    }
-
-    return NULL;
-}
-
 drone * array_of_drones;
 target * array_of_targets;
+// Matrix with targets and empty spaces
+target *** land = NULL;
 
-int main(void){
+void computes_damage_in_matrix(drone drone){
 
-    num_of_drones = 3;
-    num_of_targets = 4;
+    int x0 = drone.x - drone.radius;
+    int y0 = drone.y - drone.radius;
+
+    int i = x0;
+    while(i < x0 + (2*drone.radius + 1)){
+        int j = y0;
+        if(i >= 0 && i < n){
+            while(j < y0 + (2*drone.radius + 1)){
+                if(j >= 0 && j < m){
+                    if(land[i][j] != NULL && land[i][j]->id > 0 && land[i][j]->destroyed == false && land[i][j]->type == 0){
+                        land[i][j]->health += drone.damage; 
+                        if(land[i][j]->health >= 0){
+                            land[i][j]->destroyed = true;
+                        }
+                    } else if(land[i][j] != NULL && land[i][j]->id > 0 && land[i][j]->destroyed == false && land[i][j]->type == 1){
+                        land[i][j]->health -= drone.damage;
+                        if(land[i][j]->health <= 0){
+                            land[i][j]->destroyed = true;
+                        }
+                    }
+                }
+                j++;
+            }
+        }
+        i++;
+    }
+
+}
+
+bool parse_input(){
 
     FILE *txt_file;
     // Opens file with read function
@@ -155,8 +168,28 @@ int main(void){
             }
             line_columns[i] = '\0';
 
-            m = atoi(line_rows);  
-            n = atoi(line_columns);
+            n = atoi(line_rows);  
+            m = atoi(line_columns);
+
+            land = (target ***)malloc(n * sizeof(target **));
+
+            if (land == NULL) {
+                perror("Error assigning memory!\n");
+                return false;
+            }
+
+            for (int i = 0; i < n; i++) {
+                land[i] = (target **)malloc(m * sizeof(target *));
+                if (land[i] == NULL) {
+                    perror("Error al asignar memoria");
+                    return false;
+                }
+
+                for (int j = 0; j < m; j++) {
+                    land[i][j] = NULL;  // Initialize pointers in NULL
+                }
+            }
+
 
         } else if (line_counter == 2){
             int i = 0;
@@ -257,6 +290,8 @@ int main(void){
             new_target->destroyed = false;
 
             memcpy(&array_of_targets[line_counter - 3], new_target, sizeof(target));
+            land[coord_x][coord_y] = &array_of_targets[line_counter - 3];
+
             free(new_target);
 
         } else if( 3 + num_of_targets == line_counter ){
@@ -367,6 +402,10 @@ int main(void){
             int radius = atoi(line_radius);
             int power = atoi(line_power);
 
+
+            // This is a variable used to determine if it's convenient to use the matrix
+            work_if_matrix += (2*radius + 1)*(2*radius + 1);
+
             drone * new_drone = (drone *) malloc (sizeof(drone));
             new_drone->x = coord_x;
             new_drone->y = coord_y;
@@ -379,23 +418,45 @@ int main(void){
         }
 
         line_counter++;
-    }   
+    }
 
-    for(int i = 0; i < num_of_drones; i++){
-        double x = 0.0;
-        // Trabajo intensivo en CPU
-        for (long j = 0; j < 10000; j++) {
-            x += (double)j / (j + 1); // Cálculo simple pero pesado
-        }
-        for(int j = 0; j < num_of_targets; j++){
-            if(!array_of_targets[j].destroyed){
-                computes_damage(array_of_drones[i], &array_of_targets[j]);
+    return true;
+}
+
+int main(void){
+
+    if(!parse_input()){
+        return 1;
+    }
+
+    printf("Work if Matrix: %d \nWork if not matrix: %d\n", work_if_matrix, num_of_drones * num_of_targets);
+
+    if(num_of_drones * num_of_targets <= work_if_matrix){
+
+        printf("Es mejor no hacer matriz\n");
+
+        for(int i = 0; i < num_of_drones; i++){
+            double x = 0.0;
+            // Trabajo intensivo en CPU
+            for (long j = 0; j < 10000; j++) {
+                x += (double)j / (j + 1); // Cálculo simple pero pesado
+            }
+            for(int j = 0; j < num_of_targets; j++){
+                if(!array_of_targets[j].destroyed){
+                    computes_damage(array_of_drones[i], &array_of_targets[j]);
+                }
             }
         }
+
+    } else {
+
+        printf("Es mejor hacer la matriz\n");
+
+        for(int i = 0; i < num_of_drones; i++){
+            computes_damage_in_matrix(array_of_drones[i]);
+        }
+
     }
-    
-    free(array_of_targets);
-    free(array_of_drones);
 
     int om_destroyed_targets = 0, om_parcially_destroyed_targets = 0, om_intact_targets = 0,
         ic_destroyed_targets = 0, ic_parcially_destroyed_targets = 0, ic_intact_targets = 0;
@@ -423,5 +484,16 @@ int main(void){
     printf("OM sin destruir: %d \nOM parcialmente destruidos: %d \nOM totalmente destruido: %d\n", om_intact_targets, om_parcially_destroyed_targets, om_destroyed_targets);
     printf("IC sin destruir: %d \nIC parcialmente destruidos: %d \nIC totalmente destruido: %d\n", ic_intact_targets, ic_parcially_destroyed_targets, ic_destroyed_targets);
     
+
+    for (int i = 0; i < n; i++) {
+        free(land[i]);
+    }
+
+    free(array_of_targets);
+    free(array_of_drones);
+    free(land);
+
+
+
     return 0;
 }

@@ -11,7 +11,6 @@ int n;
 int m;
 int num_of_drones;
 int num_of_targets;
-
 int work_if_matrix = 0;
 
 typedef struct drone drone;
@@ -114,7 +113,6 @@ void computes_damage_in_matrix(drone drone){
 
 }
 
-
 bool parse_input(){
     
     FILE *txt_file;
@@ -184,7 +182,7 @@ bool parse_input(){
 
     array_of_drones = (drone *) malloc (num_of_drones * sizeof(drone));
 
-    for(int i = 1; i <= num_of_targets; i++){
+    for(int i = 1; i <= num_of_drones; i++){
         
         int coord_x;  
         int coord_y;
@@ -208,6 +206,7 @@ bool parse_input(){
 
     }
 
+    fclose(txt_file);
     return true;
 }
 

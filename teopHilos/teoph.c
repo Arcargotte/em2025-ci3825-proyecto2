@@ -43,7 +43,6 @@ typedef struct thread_args_drone thread_args_drone;
 struct thread_args_drone{
     drone * array_of_drones;
     target * array_of_targets;
-    int num_of_targets;
     int num_of_drones;
 };
 
@@ -53,7 +52,6 @@ struct thread_args_target{
     drone * array_of_drones;
     int num_of_drones;
 };
-
 
 /* Esta linea esta mal, es importante terminar de trabajar aqui. */
 thread_args_drone * arr_of_args_drone[31680];
@@ -200,8 +198,6 @@ void * drone_damage_targets (void * args){
     pthread_mutex_unlock(&available);
     //Unblocking others threads to access to the critical section
     
-    
-
     pthread_exit(0);
     return NULL;
 }
@@ -258,7 +254,6 @@ void create_threads (pthread_t * array_of_threads, pthread_attr_t * thread_drone
         }
         
         arg->array_of_targets = array_of_targets;
-        arg->num_of_targets = num_of_targets;
         arg->num_of_drones = array_of_drones_for_threads[i];
 
         arr_of_args_drone[i] = arg;
@@ -278,12 +273,6 @@ void join_threads (pthread_t * array_of_threads){
     for (int i = 0; i < num_of_threads; i++){
         pthread_join(array_of_threads[i], NULL);
     }
-}
-
-void kill_threads(){
-    /*
-        Elimina el bloque de atributos de los hilos del arreglo de hilos ejecutando la función pthread_attr_destroy.
-    */
 }
 
 bool parse_input(){

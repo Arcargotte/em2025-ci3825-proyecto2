@@ -10,8 +10,8 @@
 
 int n;
 int m;
-int num_of_drones;    
-int num_of_targets;
+long long num_of_drones;    
+long long num_of_targets;
 int num_of_threads = 3;
 int work_if_matrix = 0;
 
@@ -54,7 +54,7 @@ struct thread_args_target{
 };
 
 /* Esta linea esta mal, es importante terminar de trabajar aqui. */
-thread_args_drone * arr_of_args_drone[31680];
+thread_args_drone * arr_of_args_drone[90000];
 
 pthread_mutex_t available;
 
@@ -303,7 +303,7 @@ bool parse_input(){
         }
     }
 
-    fscanf(txt_file, "%d", &num_of_targets);
+    fscanf(txt_file, "%lld", &num_of_targets);
     //Assign memory for array of targets
     array_of_targets = (target *) malloc (num_of_targets * sizeof(target));
     for(int i = 1; i <= num_of_targets; i++){
@@ -334,7 +334,7 @@ bool parse_input(){
 
     }
 
-    fscanf(txt_file, "%d", &num_of_drones);
+    fscanf(txt_file, "%lld", &num_of_drones);
 
     array_of_drones = (drone *) malloc (num_of_drones * sizeof(drone));
 
@@ -373,7 +373,7 @@ int main(void){
         return 1;
     }
 
-    printf("Work if Matrix: %d \nWork if not matrix: %d\n", work_if_matrix, num_of_drones * num_of_targets);
+    printf("Work if Matrix: %d \nWork if not matrix: %lld\n", work_if_matrix, num_of_drones * num_of_targets);
 
     if(pthread_mutex_init(&available, NULL) != 0){
         fprintf(stderr, "Couldn't initialize mutex\n");

@@ -428,8 +428,12 @@ int main(void){
     printf("OM sin destruir: %d \nOM parcialmente destruidos: %d \nOM totalmente destruido: %d\n", om_intact_targets, om_parcially_destroyed_targets, om_destroyed_targets);
     printf("IC sin destruir: %d \nIC parcialmente destruidos: %d \nIC totalmente destruido: %d\n", ic_intact_targets, ic_parcially_destroyed_targets, ic_destroyed_targets);
     
+    for (int i = 0; i < n; i++) {
+        free(land[i]);
+    }
     free(array_of_targets);
     free(array_of_drones);
+    free(land);
 
     pthread_mutex_destroy(&available);
 

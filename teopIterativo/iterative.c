@@ -9,8 +9,8 @@
 
 int n;
 int m;
-int num_of_drones;
-int num_of_targets;
+long long num_of_drones;
+long long num_of_targets;
 int work_if_matrix = 0;
 
 typedef struct drone drone;
@@ -147,7 +147,7 @@ bool parse_input(){
         }
     }
 
-    fscanf(txt_file, "%d", &num_of_targets);
+    fscanf(txt_file, "%lld", &num_of_targets);
     //Assign memory for array of targets
     array_of_targets = (target *) malloc (num_of_targets * sizeof(target));
     for(int i = 1; i <= num_of_targets; i++){
@@ -178,7 +178,7 @@ bool parse_input(){
 
     }
 
-    fscanf(txt_file, "%d", &num_of_drones);
+    fscanf(txt_file, "%lld", &num_of_drones);
 
     array_of_drones = (drone *) malloc (num_of_drones * sizeof(drone));
 
@@ -216,9 +216,11 @@ int main(void){
         return 1;
     }
 
-    printf("Work if Matrix: %d \nWork if not matrix: %d\n", work_if_matrix, num_of_drones * num_of_targets);
+    long long work_no_matrix = (long long)(num_of_drones * num_of_targets);
 
-    if(num_of_drones * num_of_targets <= work_if_matrix){
+    printf("Work if Matrix: %d \nWork if not matrix: %lld\n", work_if_matrix, work_no_matrix);
+
+    if(work_no_matrix <= work_if_matrix){
 
         printf("Es mejor no hacer matriz\n");
 

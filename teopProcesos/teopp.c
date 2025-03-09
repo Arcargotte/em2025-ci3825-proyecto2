@@ -44,7 +44,7 @@ struct target{
 
 drone * array_of_drones;
 target * array_of_targets;
-target *** land = NULL;
+target *** land;
 
 pthread_mutex_t * available;
 
@@ -83,7 +83,6 @@ bool parse_input(){
 
     fscanf(txt_file, "%lld", &num_of_targets);
     //Assign memory for array of targets
-    //array_of_targets = (target *) malloc (num_of_targets * sizeof(target));
     
     array_of_targets = (target *) mmap(NULL, num_of_targets * sizeof(target),
                              PROT_READ | PROT_WRITE,
@@ -102,24 +101,19 @@ bool parse_input(){
 
         fscanf(txt_file, "%d %d %d", &coord_x, &coord_y, &resistance);
 
-        target * new_target = (target *) malloc (sizeof(target));
-        new_target->x = coord_x;
-        new_target->y = coord_y;
-        new_target->health = resistance;
-        new_target->resistance = resistance;
-        new_target->id = i;
+        array_of_targets[i - 1].x = coord_x;
+        array_of_targets[i - 1].y = coord_y;
+        array_of_targets[i - 1].health = resistance;
+        array_of_targets[i - 1].resistance = resistance;
+        array_of_targets[i - 1].id = i;
         if(resistance < 0){
-            new_target->type = 0;
+            array_of_targets[i - 1].type = 0;
         } else {
-            new_target->type = 1;
+            array_of_targets[i - 1].type = 1;
         }
-        new_target->destroyed = false;
-
-        memcpy(&array_of_targets[i - 1], new_target, sizeof(target));
+        array_of_targets[i - 1].destroyed = false;
 
         land[coord_x][coord_y] = &array_of_targets[i - 1];
-
-        free(new_target);
 
     }
 
@@ -318,17 +312,22 @@ int main (void){
                         }
                     }
                 }
-                fflush(stdout);  // Forzar salida inmediata
-                exit(0); 
+                
 
             } else {
                 printf("Es mejor con matriz.\n");
                 for(int i = 0; i < array_of_drones_per_process[process_iter]; i++){
                     computes_damage_in_matrix(array_of_drones[i + process_iter * array_of_drones_per_process[process_iter]]);
                 }
-                fflush(stdout);  // Forzar salida inmediata
-                exit(0); 
             }
+
+            for (int i = 0; i < n; i++) {
+                free(land[i]);
+            }
+            free(land);
+            free(array_of_drones);
+            fflush(stdout);  // Forzar salida inmediata
+            exit(0); 
         }
 
         array_of_processes[k] = id_process;
@@ -367,11 +366,12 @@ int main (void){
     for (int i = 0; i < n; i++) {
         free(land[i]);
     }
-    
-    munmap(NULL, num_of_targets * sizeof(target));
-    munmap(NULL, sizeof(pthread_mutex_t));
-    free(array_of_drones);
     free(land);
+    
+    munmap(array_of_targets, num_of_targets * sizeof(target));
+    munmap(available, sizeof(pthread_mutex_t));
+    free(array_of_drones);
+    
 
     return 0;
 }

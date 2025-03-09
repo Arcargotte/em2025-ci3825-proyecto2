@@ -43,12 +43,6 @@ typedef struct thread_args_drone{
     int num_of_drones;
 } thread_args_drone;
 
-typedef struct thread_args_target{
-    target target;
-    drone * array_of_drones;
-    int num_of_drones;
-} thread_args_target;
-
 // Global arrays
 drone * array_of_drones;
 target * array_of_targets;
@@ -67,40 +61,44 @@ thread_args_drone * arr_of_args_drone[90000];
 int computes_damage (drone drone, target * target){
 
     bool hits = false;
+
     // First Quadrant
-    //printf("Entra dron %d en (%d,%d) y target en (%d,%d)\n", drone.id,drone.x,drone.y, target->x,target->y);
-    if (drone.x >= target->x && drone.y >= target->y){
-        if (drone.x - drone.radius <= target->x && drone.y - drone.radius <= target->y){
-            hits = true;
-        }
+    if( drone.x >= target->x && drone.y >= target->y && 
+        drone.x - drone.radius <= target->x && 
+        drone.y - drone.radius <= target->y ){
+        
+        hits = true;
+        
     }
     //Second Quadrant
-    else if (drone.x < target->x && drone.y > target->y){
-        if(drone.x + drone.radius >= target->x && drone.y - drone.radius <= target->y){
-            hits = true;
-        }
+    else if( drone.x < target->x && drone.y > target->y && 
+             drone.x + drone.radius >= target->x && 
+             drone.y - drone.radius <= target->y ){
+
+        hits = true;
+        
     }
     //Third Quadrant
-    else if (drone.x > target->x && drone.y < target->y){
-        if(drone.x - drone.radius <= target->x && drone.y + drone.radius >= target->y){
-            hits = true;
-        }
+    else if( drone.x > target->x && drone.y < target->y && 
+             drone.x - drone.radius <= target->x && 
+             drone.y + drone.radius >= target->y ){
+        
+        hits = true;
+        
     }
     //Fourth Quadrant
-    else if (drone.x <= target->x && drone.y <= target->y){
-        if(drone.x + drone.radius >= target->x && drone.y + drone.radius >= target->y){
-            hits = true;
-        }
+    else if( drone.x <= target->x && drone.y <= target->y && 
+             drone.x + drone.radius >= target->x && 
+             drone.y + drone.radius >= target->y ){
+        
+        hits = true;
+        
     }
 
-    if (hits){
-        
-        if(target->type == 0){
-            return drone.damage;
-        }
-        return -1 * drone.damage;
-        
+    if ( hits ){
+        return (target->type == 0) ? drone.damage : -1 * drone.damage;
     }
+
     return 0;
 }
 
@@ -112,30 +110,48 @@ int computes_damage (drone drone, target * target){
  */
 void computes_damage_in_matrix(drone drone){
 
-    int x0 = drone.x - drone.radius;
-    int y0 = drone.y - drone.radius;
-
-    int i = x0;
+    int x0 = drone.x - drone.radius, y0 = drone.y - drone.radius, i = x0, j;
+    
     while(i < x0 + (2*drone.radius + 1)){
-        int j = y0;
-        if(i >= 0 && i < n){
+
+        j = y0;
+
+        if( i >= 0 && i < n ){
+
             while(j < y0 + (2*drone.radius + 1)){
-                if(j >= 0 && j < m){
-                    if(land[i][j] != NULL && land[i][j]->id > 0 && land[i][j]->destroyed == false && land[i][j]->type == 0){
+
+                if( j >= 0 && j < m ){
+
+                    if( land[i][j] != NULL && land[i][j]->id > 0 && 
+                        land[i][j]->destroyed == false && 
+                        land[i][j]->type == 0 ){
+                        
+                        // Blocking others threads to access to the critical section
                         pthread_mutex_lock(&available);
                         land[i][j]->health += drone.damage; 
-                        if(land[i][j]->health >= 0){
+                        
+                        if( land[i][j]->health >= 0 ){
                             land[i][j]->destroyed = true;
                         }
                         pthread_mutex_unlock(&available);
-                    } else if(land[i][j] != NULL && land[i][j]->id > 0 && land[i][j]->destroyed == false && land[i][j]->type == 1){
+                        // Unblocking others threads to access to the critical section
+
+                    } else if( land[i][j] != NULL && land[i][j]->id > 0 && 
+                               land[i][j]->destroyed == false && 
+                               land[i][j]->type == 1 ){
+                        
+                        // Blocking others threads to access to the critical section
                         pthread_mutex_lock(&available);
                         land[i][j]->health -= drone.damage;
-                        if(land[i][j]->health <= 0){
+                        
+                        if( land[i][j]->health <= 0 ){
                             land[i][j]->destroyed = true;
                         }
                         pthread_mutex_unlock(&available);
+                        // Unblocking others threads to access to the critical section
+
                     }
+                    
                 }
                 j++;
             }
@@ -184,39 +200,48 @@ void * drone_damage_targets (void * args){
     }
     
     for(int i = 0; i < arguments->num_of_drones; i++){
-        for (int j = 0; j < num_of_targets; j++){
-            if(!arguments->array_of_targets[j].destroyed){
-                int damage = computes_damage(arguments->array_of_drones[i], &arguments->array_of_targets[j]);
+        for(int j = 0; j < num_of_targets; j++){
+            if( !arguments->array_of_targets[j].destroyed ){
+
+                int damage = computes_damage(arguments->array_of_drones[i], 
+                                            &arguments->array_of_targets[j]);
+                
                 damage_control_array[j] += damage;
 
-                if((arguments->array_of_targets[j].type == 0 && abs(damage_control_array[j]) >= abs(arguments->array_of_targets[j].resistance)) || 
-                    (arguments->array_of_targets[j].type == 1 && abs(damage_control_array[j]) >= abs(arguments->array_of_targets[j].resistance))){
+                if( abs(damage_control_array[j]) >= abs(arguments->array_of_targets[j].resistance) ){
                     arguments->array_of_targets[j].destroyed = true;
                 }
+                
             }
         }
     }
     
-    //Blocking others threads to access to the critical section
+    // Blocking others threads to access to the critical section
     pthread_mutex_lock(&available);
     for (int i = 0; i < num_of_targets; i++) {
 
-        if(arguments->array_of_targets[i].type == 0 && !arguments->array_of_targets[i].destroyed){
+        if( arguments->array_of_targets[i].type == 0 &&
+            !arguments->array_of_targets[i].destroyed ){
             
             arguments->array_of_targets[i].health += damage_control_array[i];
-            if(arguments->array_of_targets[i].health >= 0){
+            
+            if( arguments->array_of_targets[i].health >= 0 ){
                 arguments->array_of_targets[i].destroyed = true;
             }
-        } else if(arguments->array_of_targets[i].type == 1 && !arguments->array_of_targets[i].destroyed){
+
+        } else if( arguments->array_of_targets[i].type == 1 && 
+                   !arguments->array_of_targets[i].destroyed ){
+
             arguments->array_of_targets[i].health += damage_control_array[i];
             
-            if(arguments->array_of_targets[i].health <= 0){
+            if( arguments->array_of_targets[i].health <= 0 ){
                 arguments->array_of_targets[i].destroyed = true;
             }
+
         }
     }
     pthread_mutex_unlock(&available);
-    //Unblocking others threads to access to the critical section
+    // Unblocking others threads to access to the critical section
     
     pthread_exit(0);
     return NULL;
@@ -235,20 +260,17 @@ void * drone_damage_targets (void * args){
 void calculate_drone_per_thread( int * array_of_drones_for_threads ){
 
     float drone_per_thread = (float)num_of_drones/num_of_threads;
-
-    int drone_int = (int) drone_per_thread;
+    int drone_int = (int) drone_per_thread, dif, i;
 
     for(int i = 0; i < num_of_threads; i++){
         array_of_drones_for_threads[i] = drone_int;
     }
 
-    // I just need the decimal part
     drone_per_thread = drone_per_thread - drone_int;
 
-    // I just need the decimal part
-    int dif = roundf(drone_per_thread * num_of_threads);
+    dif = roundf(drone_per_thread * num_of_threads);
 
-    int i = 0;
+    i = 0;
     while(dif > 0){
         array_of_drones_for_threads[i]++;
         dif--;
@@ -265,9 +287,6 @@ void calculate_drone_per_thread( int * array_of_drones_for_threads ){
 int strategy_decider(){
 
     long long work_if_no_matrix = (long long)(num_of_drones * num_of_targets);
-
-    printf("Work if Matrix: %d \nWork if no Matrix: %lld\n", work_if_matrix, work_if_no_matrix);
-
     return (work_if_no_matrix <= work_if_matrix) ? 1 : 2;
 
 }
@@ -285,22 +304,23 @@ int strategy_decider(){
  * @param array_of_targets
  * @return
  */
-void create_threads (pthread_t * array_of_threads, pthread_attr_t * thread_drone_attr, drone * array_of_drones, thread_args_drone ** arr_of_args_drone, target * array_of_targets, int strategy){
-    //CREA HILO POR DRON
-    int j = 0;
-    int array_of_drones_for_threads[num_of_threads];
+void create_threads ( pthread_t * array_of_threads, pthread_attr_t * thread_drone_attr, 
+                      drone * array_of_drones, thread_args_drone ** arr_of_args_drone, 
+                      target * array_of_targets, int strategy ){
+    
+    int j = 0, array_of_drones_for_threads[num_of_threads];
 
     calculate_drone_per_thread(array_of_drones_for_threads);
 
     for (int i = 0; i < num_of_threads; i++){
-        /*ASIGNA MEMORIA DINÁMICAMENTE*/
+        
         thread_args_drone * arg = malloc(sizeof(thread_args_drone));
         if (arg == NULL){
-            printf("ERROR: Failed allocating dynamic memory!");
-            return;
+            perror("ERROR: Failed allocating dynamic memory!");
+            exit(EXIT_FAILURE);
         }
 
-        arg->array_of_drones = (drone *) malloc(array_of_drones_for_threads[i] * sizeof(drone));
+        arg->array_of_drones = (drone *)malloc(array_of_drones_for_threads[i] * sizeof(drone));
         if (!arg->array_of_drones) {
             perror("ERROR: Failed allocating dynamic memory!");
             exit(EXIT_FAILURE);
@@ -318,11 +338,17 @@ void create_threads (pthread_t * array_of_threads, pthread_attr_t * thread_drone
 
         switch (strategy){
             case 1:
-                pthread_create(&array_of_threads[i], thread_drone_attr, drone_damage_targets, arr_of_args_drone[i]);
+
+                pthread_create( &array_of_threads[i], thread_drone_attr, 
+                                drone_damage_targets, arr_of_args_drone[i] );
                 break;
+
             case 2:
-                pthread_create(&array_of_threads[i], thread_drone_attr, drone_damage_targets_matrix, arr_of_args_drone[i]);
+
+                pthread_create( &array_of_threads[i], thread_drone_attr, 
+                                drone_damage_targets_matrix, arr_of_args_drone[i] );
                 break;
+
         }
 
     }
@@ -335,9 +361,6 @@ void create_threads (pthread_t * array_of_threads, pthread_attr_t * thread_drone
  * @return void.
  */
 void join_threads (pthread_t * array_of_threads){
-    /*
-        Por cada uno de los elementos en un arreglo de hilos, ejecutar la función pthread_join() para que el proceso espere a que los hilos terminen ejecución.
-    */
     for (int i = 0; i < num_of_threads; i++){
         pthread_join(array_of_threads[i], NULL);
     }
@@ -352,27 +375,25 @@ void join_threads (pthread_t * array_of_threads){
 bool parse_input(char * file_name){
     
     FILE *txt_file;
-    // Opens file with read function
     txt_file = fopen(file_name, "r");
-
-    // In case the file couldn't open
     if (txt_file == NULL) {
-        printf("\x1b[31mError:\x1b[37m Couldn't open text file!\n");
+        perror("Error: Couldn't open text file!\n");
         return false;
     }
     
+    // Receives rows and colums
     fscanf(txt_file, "%d %d", &n, &m);
 
     // Assign memory for matrix land
     land = (target ***)malloc(n * sizeof(target **));
-
     if (land == NULL) {
         perror("Error assigning memory!\n");
         return false;
     }
 
     for (int i = 0; i < n; i++) {
-        land[i] = (target **)malloc(m * sizeof(target *));
+        // Assign memory to row
+        land[i] = (target **)malloc(m * sizeof(target *)); 
         if (land[i] == NULL) {
             perror("Error assigning memory!\n");
             return false;
@@ -383,63 +404,47 @@ bool parse_input(char * file_name){
         }
     }
 
+    // Receives number of targets
     fscanf(txt_file, "%lld", &num_of_targets);
-    //Assign memory for array of targets
+
     array_of_targets = (target *) malloc (num_of_targets * sizeof(target));
+
     for(int i = 1; i <= num_of_targets; i++){
-        
-        int coord_x;  
-        int coord_y;
-        int resistance;
+        int coord_x, coord_y, resistance;
 
+        // Receives attributes for each target
         fscanf(txt_file, "%d %d %d", &coord_x, &coord_y, &resistance);
+    
+        array_of_targets[i - 1].x = coord_x;
+        array_of_targets[i - 1].y = coord_y;
+        array_of_targets[i - 1].health = resistance;
+        array_of_targets[i - 1].resistance = resistance;
+        array_of_targets[i - 1].id = i;
+        array_of_targets[i - 1].type = (resistance < 0) ? 0 : 1; 
+        array_of_targets[i - 1].destroyed = false;
 
-        target * new_target = (target *) malloc (sizeof(target));
-        new_target->x = coord_x;
-        new_target->y = coord_y;
-        new_target->health = resistance;
-        new_target->resistance = resistance;
-        new_target->id = i;
-        if(resistance < 0){
-            new_target->type = 0;
-        } else {
-            new_target->type = 1;
-        }
-        new_target->destroyed = false;
-
-        memcpy(&array_of_targets[i - 1], new_target, sizeof(target));
+        // land is designed to point to targets in array of targets
         land[coord_x][coord_y] = &array_of_targets[i - 1];
-
-        free(new_target);
-
     }
 
+    // Receives number of drones
     fscanf(txt_file, "%lld", &num_of_drones);
 
     array_of_drones = (drone *) malloc (num_of_drones * sizeof(drone));
 
     for(int i = 1; i <= num_of_drones; i++){
-        
-        int coord_x;  
-        int coord_y;
-        int radius;
-        int power;
+        int coord_x, coord_y, radius, power;
 
         fscanf(txt_file, "%d %d %d %d", &coord_x, &coord_y, &radius, &power);
 
-        // This is a variable used to determine if it's convenient to use the matrix
+        // This is a variable used to determine if it's convenient to use the matrix strategy
         work_if_matrix += (2*radius + 1)*(2*radius + 1);
 
-        drone * new_drone = (drone *) malloc (sizeof(drone));
-        new_drone->x = coord_x;
-        new_drone->y = coord_y;
-        new_drone->radius = radius;
-        new_drone->damage = power;
-        new_drone->id = i;
-
-        memcpy(&array_of_drones[i-1], new_drone, sizeof(drone));
-        free(new_drone);
-
+        array_of_drones[i-1].x = coord_x;
+        array_of_drones[i-1].y = coord_y;
+        array_of_drones[i-1].radius = radius;
+        array_of_drones[i-1].damage = power;
+        array_of_drones[i-1].id = i;
     }
 
     fclose(txt_file);
@@ -453,31 +458,49 @@ bool parse_input(char * file_name){
  */
 void print_output(){
 
-    int om_destroyed_targets = 0, om_parcially_destroyed_targets = 0, om_intact_targets = 0,
-        ic_destroyed_targets = 0, ic_parcially_destroyed_targets = 0, ic_intact_targets = 0;
+    int om_destroyed_targets = 0, om_parcially_destroyed_targets = 0, 
+        ic_destroyed_targets = 0, ic_parcially_destroyed_targets = 0, 
+        om_intact_targets = 0, ic_intact_targets = 0;
     
     for (int i = 0; i < num_of_targets; i++){
-        if(array_of_targets[i].type == 0 && !array_of_targets[i].destroyed){
-            if(array_of_targets[i].resistance == array_of_targets[i].health){
-                
-                om_intact_targets++;
-            } else{
-                om_parcially_destroyed_targets++;
-            }
-        } else if(array_of_targets[i].type == 0 && array_of_targets[i].destroyed){
+        if( array_of_targets[i].type == 0 && !array_of_targets[i].destroyed && 
+            array_of_targets[i].resistance == array_of_targets[i].health ){
+
+            om_intact_targets++;
+
+        } else if( array_of_targets[i].type == 0 && !array_of_targets[i].destroyed && 
+                   array_of_targets[i].resistance != array_of_targets[i].health ){
+            
+            om_parcially_destroyed_targets++;
+            
+        } else if( array_of_targets[i].type == 0 && array_of_targets[i].destroyed ){
+
             om_destroyed_targets++;
-        } else if(array_of_targets[i].type == 1 && !array_of_targets[i].destroyed){
-            if(array_of_targets[i].resistance == array_of_targets[i].health){
-                ic_intact_targets++;
-            } else{
-                ic_parcially_destroyed_targets++;
-            }
-        } else if(array_of_targets[i].type == 1 && array_of_targets[i].destroyed){
+
+        } else if( array_of_targets[i].type == 1 && !array_of_targets[i].destroyed && 
+                   array_of_targets[i].resistance == array_of_targets[i].health ){
+            
+            ic_intact_targets++;
+
+        } else if( array_of_targets[i].type == 1 && !array_of_targets[i].destroyed && 
+                   array_of_targets[i].resistance != array_of_targets[i].health ){
+
+            ic_parcially_destroyed_targets++;
+
+        } else if( array_of_targets[i].type == 1 && array_of_targets[i].destroyed ){
+
             ic_destroyed_targets++;
+
         }
     }
-    printf("OM sin destruir: %d \nOM parcialmente destruidos: %d \nOM totalmente destruido: %d\n", om_intact_targets, om_parcially_destroyed_targets, om_destroyed_targets);
-    printf("IC sin destruir: %d \nIC parcialmente destruidos: %d \nIC totalmente destruido: %d\n", ic_intact_targets, ic_parcially_destroyed_targets, ic_destroyed_targets);
+
+    printf("OM sin destruir: %d\n", om_intact_targets);
+    printf("OM parcialmente destruidos: %d\n", om_parcially_destroyed_targets);
+    printf("OM totalmente destruido: %d\n", om_destroyed_targets);
+
+    printf("IC sin destruir: %d\n", ic_intact_targets);
+    printf("IC parcialmente destruidos: %d\n", ic_parcially_destroyed_targets);
+    printf("IC totalmente destruido: %d\n", ic_destroyed_targets);
 }
 
 int main(int argc, char *argv[]){
@@ -500,18 +523,17 @@ int main(int argc, char *argv[]){
         return 1;
     }
 
-    // Array of ID's threads
     pthread_t array_of_threads[num_of_drones];
-
     pthread_attr_t thread_drone_attr;
-
     pthread_attr_init(&thread_drone_attr);
 
     // Decides the strategy to use in create_threads
     int strategy = strategy_decider();
 
     // Calls the function to initialize all threads
-    create_threads(array_of_threads, &thread_drone_attr, array_of_drones, arr_of_args_drone, array_of_targets, strategy);
+    create_threads( array_of_threads, &thread_drone_attr, array_of_drones, 
+                    arr_of_args_drone, array_of_targets, strategy );
+    
     // Waits for threads to finish
     join_threads(array_of_threads);
 

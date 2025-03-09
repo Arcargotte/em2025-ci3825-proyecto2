@@ -12,8 +12,8 @@
 #include <sys/wait.h>
 #include <stdbool.h>
 
-int n = 10;
-int m = 10;
+int n;
+int m;
 
 int num_of_processes = 3;
 

@@ -7,23 +7,22 @@
 #include <stdint.h>
 #include <time.h>
 
+// Global variables
 int n;
 int m;
 long long num_of_drones;
 long long num_of_targets;
 int work_if_matrix = 0;
 
-typedef struct drone drone;
-struct drone{
+typedef struct drone {
     int x;
     int y;
     int radius;
     int damage;
     int id;
-};
+} drone;
 
-typedef struct target target;
-struct target{
+typedef struct target{
     int x;
     int y;
     int health;
@@ -31,7 +30,13 @@ struct target{
     int id;
     bool destroyed;
     int type;
-}; 
+} target; 
+
+
+// Global arrays
+drone * array_of_drones;
+target * array_of_targets;
+target *** land = NULL;
 
 void computes_damage (drone drone, target * target){
 
@@ -76,11 +81,6 @@ void computes_damage (drone drone, target * target){
         }
     }
 }
-
-drone * array_of_drones;
-target * array_of_targets;
-// Matrix with targets and empty spaces
-target *** land = NULL;
 
 void computes_damage_in_matrix(drone drone){
 
@@ -210,42 +210,17 @@ bool parse_input(char * file_name){
     return true;
 }
 
-int main(int argc, char *argv[]){
+int strategy_decider(){
 
-    if(argc != 2){
-        printf("Error: You should send exactly 1 argument!");
-        return 1;
-    }
-    
-    if(!parse_input(argv[1])){
-        return 1;
-    }
+    long long work_if_no_matrix = (long long)(num_of_drones * num_of_targets);
 
-    long long work_no_matrix = (long long)(num_of_drones * num_of_targets);
+    printf("Work if Matrix: %d \nWork if no Matrix: %lld\n", work_if_matrix, work_if_no_matrix);
 
-    printf("Work if Matrix: %d \nWork if not matrix: %lld\n", work_if_matrix, work_no_matrix);
+    return (work_if_no_matrix <= work_if_matrix) ? 1 : 2;
 
-    if(work_no_matrix <= work_if_matrix){
+}
 
-        printf("Es mejor no hacer matriz\n");
-
-        for(int i = 0; i < num_of_drones; i++){
-            for(int j = 0; j < num_of_targets; j++){
-                if(!array_of_targets[j].destroyed){
-                    computes_damage(array_of_drones[i], &array_of_targets[j]);
-                }
-            }
-        }
-
-    } else {
-
-        printf("Es mejor hacer la matriz\n");
-
-        for(int i = 0; i < num_of_drones; i++){
-            computes_damage_in_matrix(array_of_drones[i]);
-        }
-
-    }
+void print_output(){
 
     int om_destroyed_targets = 0, om_parcially_destroyed_targets = 0, om_intact_targets = 0,
         ic_destroyed_targets = 0, ic_parcially_destroyed_targets = 0, ic_intact_targets = 0;
@@ -273,12 +248,55 @@ int main(int argc, char *argv[]){
 
     printf("OM sin destruir: %d \nOM parcialmente destruidos: %d \nOM totalmente destruido: %d\n", om_intact_targets, om_parcially_destroyed_targets, om_destroyed_targets);
     printf("IC sin destruir: %d \nIC parcialmente destruidos: %d \nIC totalmente destruido: %d\n", ic_intact_targets, ic_parcially_destroyed_targets, ic_destroyed_targets);
+
+}
+
+int main(int argc, char *argv[]){
+
+    if(argc != 2){
+        printf("Error: You should send exactly 1 argument!");
+        return 1;
+    }
     
+    if(!parse_input(argv[1])){
+        return 1;
+    }
+
+    int strategy = strategy_decider();
+
+    switch (strategy){
+        case 1:
+
+            printf("It's better not to have Matrix\n");
+
+            for(int i = 0; i < num_of_drones; i++){
+                for(int j = 0; j < num_of_targets; j++){
+                    if(!array_of_targets[j].destroyed){
+                        computes_damage(array_of_drones[i], &array_of_targets[j]);
+                    }
+                }
+            }
+            break;
+
+        case 2:
+
+            printf("It's better to have Matrix\n");
+
+            for(int i = 0; i < num_of_drones; i++){
+                computes_damage_in_matrix(array_of_drones[i]);
+            }
+
+            break;
+
+    }
+
+    printf("-----------------------\n");
+
+    print_output();
 
     for (int i = 0; i < n; i++) {
         free(land[i]);
     }
-
     free(array_of_targets);
     free(array_of_drones);
     free(land);

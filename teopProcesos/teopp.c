@@ -253,6 +253,54 @@ void computes_damage_in_matrix(drone drone){
 
 }
 
+/**
+ * @brief Decides strategy used to process drones. 
+ * 
+ * @return int: if it's more convenient to work with no matrix, then it will return 1. If it's more convenient to work with the matrix, then it will return 2.
+ */
+int strategy_decider(){
+
+    long long work_if_no_matrix = (long long)(num_of_drones * num_of_targets);
+
+    printf("Work if Matrix: %d \nWork if no Matrix: %lld\n", work_if_matrix, work_if_no_matrix);
+
+    return (work_if_no_matrix <= work_if_matrix) ? 1 : 2;
+
+}
+
+/**
+ * @brief Used to print ouput required.
+ * 
+ * @return void, it just prints the output in a specific formats.
+ */
+void print_output(){
+
+    int om_destroyed_targets = 0, om_parcially_destroyed_targets = 0, om_intact_targets = 0,
+        ic_destroyed_targets = 0, ic_parcially_destroyed_targets = 0, ic_intact_targets = 0;
+    
+    for (int i = 0; i < num_of_targets; i++){
+        if(array_of_targets[i].type == 0 && !array_of_targets[i].destroyed){
+            if(array_of_targets[i].resistance == array_of_targets[i].health){
+                
+                om_intact_targets++;
+            } else{
+                om_parcially_destroyed_targets++;
+            }
+        } else if(array_of_targets[i].type == 0 && array_of_targets[i].destroyed){
+            om_destroyed_targets++;
+        } else if(array_of_targets[i].type == 1 && !array_of_targets[i].destroyed){
+            if(array_of_targets[i].resistance == array_of_targets[i].health){
+                ic_intact_targets++;
+            } else{
+                ic_parcially_destroyed_targets++;
+            }
+        } else if(array_of_targets[i].type == 1 && array_of_targets[i].destroyed){
+            ic_destroyed_targets++;
+        }
+    }
+    printf("OM sin destruir: %d \nOM parcialmente destruidos: %d \nOM totalmente destruido: %d\n", om_intact_targets, om_parcially_destroyed_targets, om_destroyed_targets);
+    printf("IC sin destruir: %d \nIC parcialmente destruidos: %d \nIC totalmente destruido: %d\n", ic_intact_targets, ic_parcially_destroyed_targets, ic_destroyed_targets);
+}
 
 int main (int argc, char *argv[]){
 
@@ -306,39 +354,41 @@ int main (int argc, char *argv[]){
         }
         if (id_process == 0) {
             
-            if(num_of_drones * num_of_targets <= work_if_matrix){
+            int strategy = strategy_decider();
+            int initial_drone = 0;
 
-                printf("Es mejor sin matriz.\n");
+            switch(strategy){
+                case 1:
+                    printf("Es mejor sin matriz.\n");
+    
+                    for(int k = 0; k < process_iter; k++){
+                        initial_drone += array_of_drones_per_process[k];
+                    }
 
-                //Calculates the initial drone for the process
-                int initial_drone = 0;
-                for(int k = 0; k < process_iter; k++){
-                    initial_drone += array_of_drones_per_process[k];
-                }
-
-                // Iterates from initial drone until it reaches the amount of drones given
-                for(int i = initial_drone; i < initial_drone + array_of_drones_per_process[process_iter]; i++){
-                    for (int j = 0; j < num_of_targets; j++){
-                        if(!array_of_targets[j].destroyed){
-                            computes_damage(array_of_drones[i], &array_of_targets[j]);
+                    // Iterates from initial drone until it reaches the amount of drones given
+                    for(int i = initial_drone; i < initial_drone + array_of_drones_per_process[process_iter]; i++){
+                        for (int j = 0; j < num_of_targets; j++){
+                            if(!array_of_targets[j].destroyed){
+                                computes_damage(array_of_drones[i], &array_of_targets[j]);
+                            }
                         }
                     }
-                }
 
-            } else {
+                    break;
+                    
+                case 2:
+                    printf("Es mejor con matriz.\n");
+                    
+                    for(int k = 0; k < process_iter; k++){
+                        initial_drone += array_of_drones_per_process[k];
+                    }
 
-                printf("Es mejor con matriz.\n");
+                    // Iterates from initial drone until it reaches the amount of drones given
+                    for(int i = initial_drone; i < initial_drone + array_of_drones_per_process[process_iter]; i++){
+                        computes_damage_in_matrix(array_of_drones[i]);
+                    }
 
-                //Calculates the initial drone for the process
-                int initial_drone = 0;
-                for(int k = 0; k < process_iter; k++){
-                    initial_drone += array_of_drones_per_process[k];
-                }
-
-                // Iterates from initial drone until it reaches the amount of drones given
-                for(int i = initial_drone; i < initial_drone + array_of_drones_per_process[process_iter]; i++){
-                    computes_damage_in_matrix(array_of_drones[i]);
-                }
+                    break;
             }
 
             for (int i = 0; i < n; i++) {
@@ -349,39 +399,14 @@ int main (int argc, char *argv[]){
             fflush(stdout);  // Forzar salida inmediata
             exit(0); 
         }
-
     }
 
     // Parent process waits for childs to finish
     while (wait(NULL) > 0);
 
-    int om_destroyed_targets = 0, om_parcially_destroyed_targets = 0, om_intact_targets = 0,
-        ic_destroyed_targets = 0, ic_parcially_destroyed_targets = 0, ic_intact_targets = 0;
+    print_output();
 
-    for (int i = 0; i < num_of_targets; i++){
-        if(array_of_targets[i].type == 0 && !array_of_targets[i].destroyed){
-            if(array_of_targets[i].resistance == array_of_targets[i].health){
-                om_intact_targets++;
-            } else{
-                om_parcially_destroyed_targets++;
-            }
-        } else if(array_of_targets[i].type == 0 && array_of_targets[i].destroyed){
-            om_destroyed_targets++;
-        } else if(array_of_targets[i].type == 1 && !array_of_targets[i].destroyed){
-            if(array_of_targets[i].resistance == array_of_targets[i].health){
-                ic_intact_targets++;
-            } else{
-                ic_parcially_destroyed_targets++;
-            }
-        } else if(array_of_targets[i].type == 1 && array_of_targets[i].destroyed){
-            ic_destroyed_targets++;
-        }
-    }
-
-    printf("OM sin destruir: %d \nOM parcialmente destruidos: %d \nOM totalmente destruido: %d\n", om_intact_targets, om_parcially_destroyed_targets, om_destroyed_targets);
-    printf("IC sin destruir: %d \nIC parcialmente destruidos: %d \nIC totalmente destruido: %d\n", ic_intact_targets, ic_parcially_destroyed_targets, ic_destroyed_targets);
-
-
+    // Free Section
     for (int i = 0; i < n; i++) {
         free(land[i]);
     }

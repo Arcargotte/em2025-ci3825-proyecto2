@@ -439,7 +439,7 @@ int main(int argc, char *argv[]){
     }
 
     num_of_threads = atoi(argv[1]);
-    
+
     // If an error occurs parsing the input, then return 1.
     if(!parse_input(argv[2])){
         return 1;

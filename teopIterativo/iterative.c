@@ -212,7 +212,8 @@ bool parse_input(char * file_name){
 
 int main(int argc, char *argv[]){
 
-    if(argc < 1 || argc > 3){
+    if(argc != 2){
+        printf("Error: You should send exactly 1 argument!");
         return 1;
     }
     
@@ -263,7 +264,6 @@ int main(int argc, char *argv[]){
             if(array_of_targets[i].resistance == array_of_targets[i].health){
                 ic_intact_targets++;
             } else{
-                printf("Estoy parcialmente destruido y soy target (%d, %d, %d)\n", array_of_targets[i].id, array_of_targets[i].x, array_of_targets[i].y);
                 ic_parcially_destroyed_targets++;
             }
         } else if(array_of_targets[i].type == 1 && array_of_targets[i].destroyed){

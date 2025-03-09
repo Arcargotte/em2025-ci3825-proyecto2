@@ -15,12 +15,11 @@
 int n = 10;
 int m = 10;
 
-int num_of_processes = 3; //Creates 4 child processes.
+int num_of_processes = 3;
 
 long long num_of_drones;
 long long num_of_targets;
 int work_if_matrix = 0;
-
 
 typedef struct drone drone;
 struct drone{
@@ -48,10 +47,10 @@ target *** land;
 
 pthread_mutex_t * available;
 
-bool parse_input(){
+bool parse_input(char * file_name){
     FILE *txt_file;
     // Opens file with read function
-    txt_file = fopen("archivo.txt", "r");
+    txt_file = fopen(file_name, "r");
 
     // In case the file couldn't open
     if (txt_file == NULL) {
@@ -256,13 +255,17 @@ void computes_damage_in_matrix(drone drone){
 }
 
 
-int main (void){
-        
-    // SHARED ANONYMOUS MEMORY SPACE
-
-    if(!parse_input()){
+int main (int argc, char *argv[]){
+    
+    if(argc < 1 || argc > 3){
         return 1;
     }
+
+    if(!parse_input(argv[1])){
+        return 1;
+    }
+
+    // SHARED ANONYMOUS MEMORY SPACE
 
     available = (pthread_mutex_t *) mmap(NULL, sizeof(pthread_mutex_t),
                              PROT_READ | PROT_WRITE,

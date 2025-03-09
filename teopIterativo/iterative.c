@@ -261,9 +261,9 @@ int main(int argc, char *argv[]){
             om_destroyed_targets++;
         } else if(array_of_targets[i].type == 1 && !array_of_targets[i].destroyed){
             if(array_of_targets[i].resistance == array_of_targets[i].health){
-                printf("Estoy intacto y soy target (%d, %d, %d)\n", array_of_targets[i].id, array_of_targets[i].x, array_of_targets[i].y);
                 ic_intact_targets++;
             } else{
+                printf("Estoy parcialmente destruido y soy target (%d, %d, %d)\n", array_of_targets[i].id, array_of_targets[i].x, array_of_targets[i].y);
                 ic_parcially_destroyed_targets++;
             }
         } else if(array_of_targets[i].type == 1 && array_of_targets[i].destroyed){

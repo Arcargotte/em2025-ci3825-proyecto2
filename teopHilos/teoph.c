@@ -58,6 +58,13 @@ thread_args_drone * arr_of_args_drone[90000];
 
 pthread_mutex_t available;
 
+/**
+ * @brief Computes how much damage a drone makes over a given target
+ * 
+ * @param drone Drone that could or not attack the target
+ * @param target Target attacked or not by the drone
+ * @return int that represent how much damage the drone makes over the given target
+ */
 int computes_damage (drone drone, target * target){
 
     bool hits = false;
@@ -98,6 +105,12 @@ int computes_damage (drone drone, target * target){
     return 0;
 }
 
+/**
+ * @brief Computes how much targets a drone reaches in the matrix
+ * 
+ * @param drone Drone that explodes in a given position and reaches or not some targets
+ * @return void.
+ */
 void computes_damage_in_matrix(drone drone){
 
     int x0 = drone.x - drone.radius;
@@ -133,6 +146,12 @@ void computes_damage_in_matrix(drone drone){
 
 }
 
+/**
+ * @brief Iterates over the drones calculating the targets that the drone reaches.
+ * 
+ * @param args Struct that contains all the arguments for the function to work.
+ * @return void *, this time is simply NULL.
+ */
 void * drone_damage_targets_matrix (void * args){
     
     thread_args_drone * arguments = (thread_args_drone * ) args;
@@ -145,6 +164,14 @@ void * drone_damage_targets_matrix (void * args){
     return NULL;
 }
 
+/**
+ * @brief Iterates over the drones and calculates for each objective the damage made to it,
+ * it saves the damage made in an local array and once it finishes calculating updates the health of each objective,
+ * it uses a mutex to be sure of not getting involve in some race condition.
+ * 
+ * @param args Struct that contains all the arguments for the function to work.
+ * @return void *, this time is simply NULL.
+ */
 void * drone_damage_targets (void * args){
     
     thread_args_drone * arguments = (thread_args_drone * ) args;
@@ -196,6 +223,16 @@ void * drone_damage_targets (void * args){
     return NULL;
 }
 
+/**
+ * @brief Gives a balanced amount of drones to each thread. 
+ * Example: Suppose you have 5 drones and 3 threads, then
+ * thread 1 -> 2 drones
+ * thread 2 -> 2 drones
+ * thread 3 -> 1 drone
+ * 
+ * @param array_of_drones_for_threads array empty to be filled.
+ * @return void, it doesn't return; but fills the array of drones per thread with a balanced amount of drones.
+ */
 void calculate_drone_per_thread( int * array_of_drones_for_threads ){
 
     float drone_per_thread = (float)num_of_drones/num_of_threads;
@@ -221,6 +258,19 @@ void calculate_drone_per_thread( int * array_of_drones_for_threads ){
 
 }
 
+/**
+ * @brief Creates the threads, also decides what strategy will be used to solve the problem.
+ * It decides between two strategies: 
+ * 1.- Calculates damage of drones per objectives. (Arithmetic solution)
+ * 2.- Calculates how much objectives are in the radius of each drone. (Matrix solution)
+ * 
+ * @param array_of_threads contains the array of threads
+ * @param thread_drone_attr 
+ * @param array_of_drones
+ * @param arr_of_args_drone
+ * @param array_of_targets
+ * @return
+ */
 void create_threads (pthread_t * array_of_threads, pthread_attr_t * thread_drone_attr, drone * array_of_drones, thread_args_drone ** arr_of_args_drone, target * array_of_targets){
     //CREA HILO POR DRON
     int j = 0;
@@ -260,6 +310,13 @@ void create_threads (pthread_t * array_of_threads, pthread_attr_t * thread_drone
     }
 }
 
+
+/**
+ * @brief Waits for threads to finish, starting for the first one, and then the others.
+ * 
+ * @param array_of_threads contains the array of id's threads so it could identify threads
+ * @return void.
+ */
 void join_threads (pthread_t * array_of_threads){
     /*
         Por cada uno de los elementos en un arreglo de hilos, ejecutar la función pthread_join() para que el proceso espere a que los hilos terminen ejecución.
@@ -269,6 +326,13 @@ void join_threads (pthread_t * array_of_threads){
     }
 }
 
+
+/**
+ * @brief Used to receive the input with a specific format and to initialize all global variables used in the code
+ * 
+ * @param file_name name or path to the file in format .txt used as input
+ * @return bool, true in case everything goes well, otherwise false.
+ */
 bool parse_input(char * file_name){
     
     FILE *txt_file;
@@ -373,39 +437,32 @@ int main(int argc, char *argv[]){
         return 1;
     }
 
+    // If an error occurs parsing the input, then return 1.
     if(!parse_input(argv[1])){
         return 1;
     }
-    
+
     printf("Work if Matrix: %d \nWork if not matrix: %lld\n", work_if_matrix, num_of_drones * num_of_targets);
 
+    // Initialization of the mutex
     if(pthread_mutex_init(&available, NULL) != 0){
         fprintf(stderr, "Couldn't initialize mutex\n");
         return 1;
     }
 
+    // Array of ID's threads
     pthread_t array_of_threads[num_of_drones];
 
     pthread_attr_t thread_drone_attr;
 
     pthread_attr_init(&thread_drone_attr);
 
+    // Calls the function to initialize all threads
     create_threads(array_of_threads, &thread_drone_attr, array_of_drones, arr_of_args_drone, array_of_targets);
+    // Waits for threads to finish
     join_threads(array_of_threads);
 
-    //FREE DINAMICALLY ALLOCATED MEMORY FOR THE ARRAY OF DRONES IN arr_of_args_drone
-    for (int i = 0; i < num_of_threads; i++){
-        free(arr_of_args_drone[i]->array_of_drones);
-    }
-
-    //FREE DYNAMICALLY ALLOCATED MEMORY FOR ARGUMENTS IN ARRAY OF ARGUMENTS (DRONES AND TARGETS)
-    for (int i = 0; i < num_of_drones; i++){
-        free(arr_of_args_drone[i]);
-    }
-
-    //FREE DYNAMICALLY ALLOCATED MEMORY FOR ARGUMENTS IN ARRAY OF ARGUMENTS (DRONES AND TARGETS)
-    pthread_attr_destroy(&thread_drone_attr);
-
+    // Calculates the output and prints it in a specific format
     int om_destroyed_targets = 0, om_parcially_destroyed_targets = 0, om_intact_targets = 0,
         ic_destroyed_targets = 0, ic_parcially_destroyed_targets = 0, ic_intact_targets = 0;
 
@@ -432,6 +489,17 @@ int main(int argc, char *argv[]){
     printf("OM sin destruir: %d \nOM parcialmente destruidos: %d \nOM totalmente destruido: %d\n", om_intact_targets, om_parcially_destroyed_targets, om_destroyed_targets);
     printf("IC sin destruir: %d \nIC parcialmente destruidos: %d \nIC totalmente destruido: %d\n", ic_intact_targets, ic_parcially_destroyed_targets, ic_destroyed_targets);
     
+    // Free section
+    for (int i = 0; i < num_of_threads; i++){
+        free(arr_of_args_drone[i]->array_of_drones);
+    }
+
+    for (int i = 0; i < num_of_drones; i++){
+        free(arr_of_args_drone[i]);
+    }
+
+    pthread_attr_destroy(&thread_drone_attr);
+
     for (int i = 0; i < n; i++) {
         free(land[i]);
     }

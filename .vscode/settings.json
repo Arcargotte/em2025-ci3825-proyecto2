@@ -7,6 +7,16 @@
         "stdbool.h": "c",
         "stdio.h": "c",
         "math.h": "c",
-        "time.h": "c"
+        "time.h": "c",
+        "array": "c",
+        "charconv": "c",
+        "compare": "c",
+        "functional": "c",
+        "tuple": "c",
+        "type_traits": "c",
+        "utility": "c",
+        "variant": "c",
+        "random": "c",
+        "types.h": "c"
     }
 }

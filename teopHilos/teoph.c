@@ -269,11 +269,11 @@ void join_threads (pthread_t * array_of_threads){
     }
 }
 
-bool parse_input(){
+bool parse_input(char * file_name){
     
     FILE *txt_file;
     // Opens file with read function
-    txt_file = fopen("archivo.txt", "r");
+    txt_file = fopen(file_name, "r");
 
     // In case the file couldn't open
     if (txt_file == NULL) {
@@ -367,12 +367,16 @@ bool parse_input(){
 }
 
 
-int main(void){
+int main(int argc, char *argv[]){
 
-    if(!parse_input()){
+    if(argc < 1 || argc > 3){
         return 1;
     }
 
+    if(!parse_input(argv[1])){
+        return 1;
+    }
+    
     printf("Work if Matrix: %d \nWork if not matrix: %lld\n", work_if_matrix, num_of_drones * num_of_targets);
 
     if(pthread_mutex_init(&available, NULL) != 0){

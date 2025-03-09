@@ -113,11 +113,11 @@ void computes_damage_in_matrix(drone drone){
 
 }
 
-bool parse_input(){
+bool parse_input(char * file_name){
     
     FILE *txt_file;
     // Opens file with read function
-    txt_file = fopen("archivo.txt", "r");
+    txt_file = fopen(file_name, "r");
 
     // In case the file couldn't open
     if (txt_file == NULL) {
@@ -210,9 +210,13 @@ bool parse_input(){
     return true;
 }
 
-int main(void){
+int main(int argc, char *argv[]){
 
-    if(!parse_input()){
+    if(argc < 1 || argc > 3){
+        return 1;
+    }
+    
+    if(!parse_input(argv[1])){
         return 1;
     }
 
@@ -248,6 +252,7 @@ int main(void){
     for (int i = 0; i < num_of_targets; i++){
         if(array_of_targets[i].type == 0 && !array_of_targets[i].destroyed){
             if(array_of_targets[i].resistance == array_of_targets[i].health){
+                
                 om_intact_targets++;
             } else{
                 om_parcially_destroyed_targets++;
@@ -256,6 +261,7 @@ int main(void){
             om_destroyed_targets++;
         } else if(array_of_targets[i].type == 1 && !array_of_targets[i].destroyed){
             if(array_of_targets[i].resistance == array_of_targets[i].health){
+                printf("Estoy intacto y soy target (%d, %d, %d)\n", array_of_targets[i].id, array_of_targets[i].x, array_of_targets[i].y);
                 ic_intact_targets++;
             } else{
                 ic_parcially_destroyed_targets++;

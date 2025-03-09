@@ -374,7 +374,6 @@ int main (int argc, char *argv[]){
     munmap(array_of_targets, num_of_targets * sizeof(target));
     munmap(available, sizeof(pthread_mutex_t));
     free(array_of_drones);
-    
 
     return 0;
 }

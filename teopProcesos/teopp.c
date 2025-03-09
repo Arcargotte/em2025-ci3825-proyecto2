@@ -12,10 +12,10 @@
 #include <sys/wait.h>
 #include <stdbool.h>
 
-int n;
-int m;
+long long n;
+long long m;
 
-int num_of_processes = 3;
+int num_of_processes;
 
 long long num_of_drones;
 long long num_of_targets;
@@ -54,11 +54,11 @@ bool parse_input(char * file_name){
 
     // In case the file couldn't open
     if (txt_file == NULL) {
-        printf("\x1b[31mError:\x1b[37m Couldn't open text file!\n");
+        printf("Error: Couldn't open text file!\n");
         return false;
     }
     
-    fscanf(txt_file, "%d %d", &n, &m);
+    fscanf(txt_file, "%lld %lld", &n, &m);
 
     // Assign memory for matrix land
     land = (target ***)malloc(n * sizeof(target **));
@@ -177,7 +177,6 @@ void computes_damage (drone drone, target * target){
 
     bool hits = false;
     // First Quadrant
-    //sssprintf("Entra dron %d en (%d,%d) y target en (%d,%d)\n", drone.id,drone.x,drone.y, target->x,target->y);
     if (drone.x >= target->x && drone.y >= target->y){
         if (drone.x - drone.radius <= target->x && drone.y - drone.radius <= target->y){
             hits = true;
@@ -256,12 +255,15 @@ void computes_damage_in_matrix(drone drone){
 
 
 int main (int argc, char *argv[]){
-    
-    if(argc < 1 || argc > 3){
+
+    if(argc != 3){
+        printf("Error: You should send exactly 2 arguments!\n");
         return 1;
     }
 
-    if(!parse_input(argv[1])){
+    num_of_processes = atoi(argv[1]);
+
+    if(!parse_input(argv[2])){
         return 1;
     }
 
@@ -286,8 +288,6 @@ int main (int argc, char *argv[]){
         exit(EXIT_FAILURE);
     }
 
-    pid_t array_of_processes[num_of_processes];
-
     int array_of_drones_per_process[num_of_processes];
 
     calculate_drone_per_thread(array_of_drones_per_process);
@@ -295,7 +295,7 @@ int main (int argc, char *argv[]){
     pid_t id_process = 1;
 
     int process_iter = -1;
-
+    
     for (int k = 0; k < num_of_processes; k++){
         process_iter++;
         id_process = fork();
@@ -307,20 +307,37 @@ int main (int argc, char *argv[]){
         if (id_process == 0) {
             
             if(num_of_drones * num_of_targets <= work_if_matrix){
+
                 printf("Es mejor sin matriz.\n");
-                for(int i = 0; i < array_of_drones_per_process[process_iter]; i++){
+
+                //Calculates the initial drone for the process
+                int initial_drone = 0;
+                for(int k = 0; k < process_iter; k++){
+                    initial_drone += array_of_drones_per_process[k];
+                }
+
+                // Iterates from initial drone until it reaches the amount of drones given
+                for(int i = initial_drone; i < initial_drone + array_of_drones_per_process[process_iter]; i++){
                     for (int j = 0; j < num_of_targets; j++){
                         if(!array_of_targets[j].destroyed){
-                            computes_damage(array_of_drones[i + process_iter * array_of_drones_per_process[process_iter]], &array_of_targets[j]);
+                            computes_damage(array_of_drones[i], &array_of_targets[j]);
                         }
                     }
                 }
-                
 
             } else {
+
                 printf("Es mejor con matriz.\n");
-                for(int i = 0; i < array_of_drones_per_process[process_iter]; i++){
-                    computes_damage_in_matrix(array_of_drones[i + process_iter * array_of_drones_per_process[process_iter]]);
+
+                //Calculates the initial drone for the process
+                int initial_drone = 0;
+                for(int k = 0; k < process_iter; k++){
+                    initial_drone += array_of_drones_per_process[k];
+                }
+
+                // Iterates from initial drone until it reaches the amount of drones given
+                for(int i = initial_drone; i < initial_drone + array_of_drones_per_process[process_iter]; i++){
+                    computes_damage_in_matrix(array_of_drones[i]);
                 }
             }
 
@@ -333,9 +350,9 @@ int main (int argc, char *argv[]){
             exit(0); 
         }
 
-        array_of_processes[k] = id_process;
     }
 
+    // Parent process waits for childs to finish
     while (wait(NULL) > 0);
 
     int om_destroyed_targets = 0, om_parcially_destroyed_targets = 0, om_intact_targets = 0,
@@ -363,8 +380,7 @@ int main (int argc, char *argv[]){
 
     printf("OM sin destruir: %d \nOM parcialmente destruidos: %d \nOM totalmente destruido: %d\n", om_intact_targets, om_parcially_destroyed_targets, om_destroyed_targets);
     printf("IC sin destruir: %d \nIC parcialmente destruidos: %d \nIC totalmente destruido: %d\n", ic_intact_targets, ic_parcially_destroyed_targets, ic_destroyed_targets);
-    
-    printf("El primer elemento es: %d\n", array_of_processes[0]);
+
 
     for (int i = 0; i < n; i++) {
         free(land[i]);

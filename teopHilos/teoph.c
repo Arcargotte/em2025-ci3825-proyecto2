@@ -12,7 +12,7 @@ int n;
 int m;
 long long num_of_drones;    
 long long num_of_targets;
-int num_of_threads = 3;
+int num_of_threads;
 int work_if_matrix = 0;
 
 typedef struct drone drone;
@@ -433,12 +433,15 @@ bool parse_input(char * file_name){
 
 int main(int argc, char *argv[]){
 
-    if(argc < 1 || argc > 3){
+    if(argc != 3){
+        printf("Error: You should send exactly 2 arguments!\n");
         return 1;
     }
 
+    num_of_threads = atoi(argv[1]);
+    
     // If an error occurs parsing the input, then return 1.
-    if(!parse_input(argv[1])){
+    if(!parse_input(argv[2])){
         return 1;
     }
 

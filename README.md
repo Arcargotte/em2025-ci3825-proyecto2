@@ -33,12 +33,12 @@
                 sometimes it could be better than this.
 ### Figure 1 - First Strategy 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/135fb371-fc18-4ea7-9135-5947ddae6937" alt="Descripción de la imagen" width="500"/>
+  <img src="https://github.com/user-attachments/assets/135fb371-fc18-4ea7-9135-5947ddae6937" alt="Figure 1" width="400"/>
 </p>
 
 ### Figure 2 - Second Strategy
 <p align="center">
-  <img src="https://github.com/Arcargotte/em2025-ci3825-proyecto2/blob/main/assets/Figure2.png" alt="Descripción de la imagen" width="500"/>
+  <img src="https://github.com/Arcargotte/em2025-ci3825-proyecto2/blob/main/assets/Figure2.png" alt="Figure 2" width="400"/>
 </p>
 
     -   The program would calculate (d * o) and ((2*r1 + 1)² + (2*r2 + 1)² + ... + (2*rn + 1)²)
@@ -72,9 +72,6 @@
         will be better than the thread version. 
 
 
-### Figure 1 - First Strategy 
 <p align="center">
-  <img src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExOXRpZjIwNXFqYXg4bXF5YXB1ajRvMmNpNHh4anA5ZTRkdHRoM3d5diZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Ph0oIVQeuvh0k/giphy.gif" alt="Descripción de la imagen" width="500"/>
+  <img src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExOXRpZjIwNXFqYXg4bXF5YXB1ajRvMmNpNHh4anA5ZTRkdHRoM3d5diZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Ph0oIVQeuvh0k/giphy.gif" alt="End of transmition GIF" width="400"/>
 </p>
-
-[GIF](https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExOXRpZjIwNXFqYXg4bXF5YXB1ajRvMmNpNHh4anA5ZTRkdHRoM3d5diZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Ph0oIVQeuvh0k/giphy.gif)

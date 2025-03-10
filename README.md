@@ -71,7 +71,6 @@
         to execute the program letting all threads in just one core, so an iterative version 
         will be better than the thread version. 
 
-
 <p align="center">
   <img src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExOXRpZjIwNXFqYXg4bXF5YXB1ajRvMmNpNHh4anA5ZTRkdHRoM3d5diZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Ph0oIVQeuvh0k/giphy.gif" alt="End of transmition GIF" width="400"/>
 </p>

@@ -158,24 +158,6 @@ void computes_damage_in_matrix(drone drone){
 }
 
 /**
- * @brief Iterates over the drones calculating the targets that the drone reaches.
- * 
- * @param args Struct that contains all the arguments for the function to work.
- * @return void *, this time is simply NULL.
- */
-void * drone_damage_targets_matrix (void * args){
-    
-    thread_args_drone * arguments = (thread_args_drone * ) args;
-    
-    for(int i = 0; i < arguments->num_of_drones; i++){
-        computes_damage_in_matrix(arguments->array_of_drones[i]);
-    }
-
-    pthread_exit(0);
-    return NULL;
-}
-
-/**
  * @brief Iterates over the drones and calculates for each objective the damage made to it,
  * it saves the damage made in an local array and once it finishes calculating updates the health of each objective,
  * it uses a mutex to be sure of not getting involve in some race condition.
@@ -239,6 +221,24 @@ void * drone_damage_targets (void * args){
     pthread_mutex_unlock(&available);
     // Unblocking others threads to access to the critical section
     
+    pthread_exit(0);
+    return NULL;
+}
+
+/**
+ * @brief Iterates over the drones calculating the targets that the drone reaches.
+ * 
+ * @param args Struct that contains all the arguments for the function to work.
+ * @return void *, this time is simply NULL.
+ */
+void * drone_damage_targets_matrix (void * args){
+    
+    thread_args_drone * arguments = (thread_args_drone * ) args;
+    
+    for(int i = 0; i < arguments->num_of_drones; i++){
+        computes_damage_in_matrix(arguments->array_of_drones[i]);
+    }
+
     pthread_exit(0);
     return NULL;
 }

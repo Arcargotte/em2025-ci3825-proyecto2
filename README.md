@@ -35,11 +35,12 @@
 <p align="center">
   <img src="https://github.com/user-attachments/assets/135fb371-fc18-4ea7-9135-5947ddae6937" alt="Descripción de la imagen" width="500"/>
 </p>
-![Image](https://github.com/user-attachments/assets/135fb371-fc18-4ea7-9135-5947ddae6937)
 
-### Figure 1 - Second Strategy 
-![Image](https://github.com/Arcargotte/em2025-ci3825-proyecto2/blob/main/assets/Figure2.png)
-    
+### Figure 2 - Second Strategy
+<p align="center">
+  <img src="https://github.com/Arcargotte/em2025-ci3825-proyecto2/blob/main/assets/Figure2.png" alt="Descripción de la imagen" width="500"/>
+</p>
+
     -   The program would calculate (d * o) and ((2*r1 + 1)² + (2*r2 + 1)² + ... + (2*rn + 1)²)
         to determine what strategy is better for the problem given.
     

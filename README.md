@@ -22,7 +22,7 @@
                 Important: There are optimizations in the middle, so this is the promedy case,
                 sometimes it could be better than this.
 
-                ![Figure 1](https://raw.githubusercontent.com/Arcargotte/em2025-ci3825-proyecto2/main/assets/Figure1.png)
+                ![Figure 1](https://github.com/Arcargotte/em2025-ci3825-proyecto2/blob/main/assets/Figure1.png?raw=true)
 
             2.  Checks each box affected by each drone, it goes through all the boxes affected
                 by a drone D and checks if some target is there, in that case, it would update

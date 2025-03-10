@@ -22,7 +22,7 @@
                 Important: There are optimizations in the middle, so this is the promedy case,
                 sometimes it could be better than this.
 
-                ![Figure 1](assets/Figure%201.png)
+                ![Figure 1](/relative/assets/"Figure 1.jpg"?raw=true)
 
             2.  Checks each box affected by each drone, it goes through all the boxes affected
                 by a drone D and checks if some target is there, in that case, it would update

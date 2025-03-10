@@ -45,22 +45,25 @@ pthread_mutex_t * available;
  * @return bool, true in case everything goes well, otherwise false.
  */
 bool parse_input(char * file_name){
-
+    
     FILE *txt_file;
     txt_file = fopen(file_name, "r");
     if (txt_file == NULL) {
         perror("Error: Couldn't open text file!\n");
-        return false;
+        exit(EXIT_FAILURE);
     }
     
     // Receives rows and colums
-    fscanf(txt_file, "%d %d", &n, &m);
+    if ( fscanf(txt_file, "%d %d", &n, &m) != 2 ) {
+        perror("Error: Wrong format!\n");
+        exit(EXIT_FAILURE);
+    }
 
     // Assign memory for matrix land
     land = (target ***)malloc(n * sizeof(target **));
     if (land == NULL) {
         perror("Error assigning memory!\n");
-        return false;
+        exit(EXIT_FAILURE);
     }
 
     for (int i = 0; i < n; i++) {
@@ -68,7 +71,7 @@ bool parse_input(char * file_name){
         land[i] = (target **)malloc(m * sizeof(target *)); 
         if (land[i] == NULL) {
             perror("Error assigning memory!\n");
-            return false;
+            exit(EXIT_FAILURE);
         }
 
         for (int j = 0; j < m; j++) {
@@ -77,7 +80,11 @@ bool parse_input(char * file_name){
     }
 
     // Receives number of targets
-    fscanf(txt_file, "%lld", &num_of_targets);
+
+    if ( fscanf(txt_file, "%lld", &num_of_targets) != 1 ) {
+        perror("Error: Wrong format!\n");
+        exit(EXIT_FAILURE);
+    }
 
     array_of_targets = (target *) mmap(NULL, num_of_targets * sizeof(target),
                              PROT_READ | PROT_WRITE,
@@ -92,8 +99,11 @@ bool parse_input(char * file_name){
         int coord_x, coord_y, resistance;
 
         // Receives attributes for each target
-        fscanf(txt_file, "%d %d %d", &coord_x, &coord_y, &resistance);
-    
+        if (fscanf(txt_file, "%d %d %d", &coord_x, &coord_y, &resistance) != 3) {
+            perror("Error: Wrong format!\n");
+            exit(EXIT_FAILURE);
+        }
+
         array_of_targets[i - 1].x = coord_x;
         array_of_targets[i - 1].y = coord_y;
         array_of_targets[i - 1].health = resistance;
@@ -107,14 +117,21 @@ bool parse_input(char * file_name){
     }
 
     // Receives number of drones
-    fscanf(txt_file, "%lld", &num_of_drones);
+    if ( fscanf(txt_file, "%lld", &num_of_drones) != 1 ) {
+        perror("Error: Wrong format!\n");
+        exit(EXIT_FAILURE);
+    }
 
     array_of_drones = (drone *) malloc (num_of_drones * sizeof(drone));
 
     for(int i = 1; i <= num_of_drones; i++){
         int coord_x, coord_y, radius, power;
 
-        fscanf(txt_file, "%d %d %d %d", &coord_x, &coord_y, &radius, &power);
+        if ( fscanf(txt_file, "%d %d %d %d", &coord_x, &coord_y, 
+            &radius, &power) != 4 ) {
+            perror("Error: Wrong format!\n");
+            exit(EXIT_FAILURE);
+        }
 
         // This is a variable used to determine if it's convenient to use the matrix strategy
         work_if_matrix += (2*radius + 1)*(2*radius + 1);
@@ -128,7 +145,6 @@ bool parse_input(char * file_name){
 
     fclose(txt_file);
     return true;
-
 }
 
 /**
@@ -145,6 +161,8 @@ void calculate_drone_per_thread( int * array_of_drones_for_threads ){
 
     float drone_per_thread = (float)num_of_drones/num_of_processes;
     int drone_int = (int) drone_per_thread, dif, i;
+
+    memset(array_of_drones_for_threads, 0, num_of_processes * sizeof(int));
 
     for(int i = 0; i < num_of_processes; i++){
         array_of_drones_for_threads[i] = drone_int;
@@ -460,9 +478,13 @@ int main (int argc, char *argv[]){
     print_output();
 
     // Free Section
-    for (int i = 0; i < n; i++) {
-        free(land[i]);
+
+    if (land != NULL) {
+        for(int i = 0; i < n; i++){
+            free(land[i]);
+        }
     }
+    
     free(land);
     
     munmap(array_of_targets, num_of_targets * sizeof(target));

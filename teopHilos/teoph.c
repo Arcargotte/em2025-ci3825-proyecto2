@@ -9,12 +9,8 @@
 #include <time.h>
 
 // Global variables
-int n;
-int m;
-long long num_of_drones;    
-long long num_of_targets;
-int num_of_threads;
-int work_if_matrix = 0;
+int n, m, num_of_threads, work_if_matrix = 0;
+long long num_of_drones, num_of_targets;
 pthread_mutex_t available;
 
 typedef struct drone drone;
@@ -282,7 +278,7 @@ void calculate_drone_per_thread( int * array_of_drones_for_threads ){
 /**
  * @brief Decides strategy used to process drones. 
  * 
- * @return int: if it's more convenient to work with no matrix, then it will return 1. If it's more convenient to work with the matrix, then it will return 2.
+ * @return int: If it's more convenient to work with no matrix, then it will return 1. If it's more convenient to work with the matrix, then it will return 2.
  */
 int strategy_decider(){
 

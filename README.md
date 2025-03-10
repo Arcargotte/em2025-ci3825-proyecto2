@@ -22,7 +22,7 @@
                 Important: There are optimizations in the middle, so this is the promedy case,
                 sometimes it could be better than this.
 
-                ![Image](https://github.com/user-attachments/assets/135fb371-fc18-4ea7-9135-5947ddae6937)
+![Image](https://github.com/user-attachments/assets/135fb371-fc18-4ea7-9135-5947ddae6937)
 
             2.  Checks each box affected by each drone, it goes through all the boxes affected
                 by a drone D and checks if some target is there, in that case, it would update

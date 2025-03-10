@@ -31,8 +31,10 @@
 
                 Important: There are optimizations in the middle, so this is the promedy case,
                 sometimes it could be better than this.
-
+### Figure 1 - First Strategy 
 ![Image](https://github.com/user-attachments/assets/135fb371-fc18-4ea7-9135-5947ddae6937)
+
+### Figure 1 - Second Strategy 
 ![Image](https://github.com/Arcargotte/em2025-ci3825-proyecto2/blob/main/assets/Figure2.png)
     
     -   The program would calculate (d * o) and ((2*r1 + 1)² + (2*r2 + 1)² + ... + (2*rn + 1)²)

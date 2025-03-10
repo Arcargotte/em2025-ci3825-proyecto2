@@ -32,6 +32,9 @@
                 Important: There are optimizations in the middle, so this is the promedy case,
                 sometimes it could be better than this.
 ### Figure 1 - First Strategy 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/135fb371-fc18-4ea7-9135-5947ddae6937" alt="Descripción de la imagen" width="500"/>
+</p>
 ![Image](https://github.com/user-attachments/assets/135fb371-fc18-4ea7-9135-5947ddae6937)
 
 ### Figure 1 - Second Strategy 

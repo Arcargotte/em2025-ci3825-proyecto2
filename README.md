@@ -22,7 +22,7 @@
                 Important: There are optimizations in the middle, so this is the promedy case,
                 sometimes it could be better than this.
 
-                ![Figure 1](https://drive.google.com/thumbnail?id=1pXSJyk_zzWkl1guY6NolIdRTRjmODmaj)
+                ![Figure 1](https://drive.google.com/uc?export=download&id=1pXSJyk_zzWkl1guY6NolIdRTRjmODmaj)
 
             2.  Checks each box affected by each drone, it goes through all the boxes affected
                 by a drone D and checks if some target is there, in that case, it would update
@@ -34,7 +34,7 @@
                 Important: There are optimizations in the middle, so this is the promedy case,
                 sometimes it could be better than this.
 
-                ![Figure 2](https://drive.google.com/thumbnail?id=17Y6pQBC_lshjunJRZxqq8Egh470LfgbS)
+                ![Figure 2](https://drive.google.com/uc?export=download&id=17Y6pQBC_lshjunJRZxqq8Egh470LfgbS)
 
     -   The program would calculate (d * o) and ((2*r1 + 1)² + (2*r2 + 1)² + ... + (2*rn + 1)²)
         to determine what strategy is better for the problem given.

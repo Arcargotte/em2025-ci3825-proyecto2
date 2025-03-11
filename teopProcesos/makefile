@@ -3,7 +3,7 @@
 CC=	gcc
 
 ### FLAGS PARA DEBUGGING ####
-CFLAGS= 	-Wall -Wextra -Wdouble-promotion -Wno-unused-function -Wno-sign-conversion -Werror -fsanitize=undefined -std=gnu2x -O0 -ggdb -lm
+CFLAGS= 	-Wall -Wextra -Wdouble-promotion -Wno-unused-function -Wno-sign-conversion -Werror -fsanitize=undefined -std=gnu23 -O0 -ggdb -lm
 
 ### COMPILACION ###
 

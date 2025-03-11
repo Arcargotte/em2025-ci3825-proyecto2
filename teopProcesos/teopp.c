@@ -390,6 +390,7 @@ int main (int argc, char *argv[]){
         return 1;
     }
 
+    // If num_of_processes exceeds the limit, then we limit it
     long long maximum_processes = min(n * m, num_of_drones);
     if(num_of_processes > maximum_processes){
         num_of_processes = maximum_processes;

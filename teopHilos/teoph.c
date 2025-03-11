@@ -14,20 +14,12 @@ pthread_mutex_t available;
 
 typedef struct drone drone;
 struct drone{
-    long long x;
-    long long y;
-    long long radius;
-    long long damage;
-    long long id;
+    long long x, y, radius, damage, id;
 };
 
 typedef struct target target;
 struct target{
-    long long x;
-    long long y;
-    long long health;
-    long long resistance;
-    long long id;
+    long long x, y, health, resistance, id;
     bool destroyed;
     int type;
 };
@@ -44,14 +36,14 @@ target * array_of_targets;
 target *** land = NULL;
 
 /* Esta linea está mal, es importante terminar de trabajar aqui. */
-thread_args_drone * arr_of_args_drone[90000];
+
 
 /**
  * @brief Computes how much damage a drone makes over a given target
  * 
  * @param drone Drone that could or not attack the target
  * @param target Target attacked or not by the drone
- * @return int that represent how much damage the drone makes over the given target
+ * @return long long that represent how much damage the drone makes over the given target
  */
 long long computes_damage (drone drone, target * target){
 
@@ -266,7 +258,7 @@ void calculate_drone_per_thread( long long * array_of_drones_for_threads ){
     }
 
     drone_per_thread = drone_per_thread - drone_int;
-    
+
     dif = (long long) round((double) drone_per_thread * num_of_threads);
 
     i = 0;
@@ -279,9 +271,10 @@ void calculate_drone_per_thread( long long * array_of_drones_for_threads ){
 }
 
 /**
- * @brief Decides strategy used to process drones. 
+ * @brief   Decides strategy used to process drones. 
  * 
- * @return int: If it's more convenient to work with no matrix, then it will return 1. If it's more convenient to work with the matrix, then it will return 2.
+ * @return  int: If it's more convenient to work with no matrix, then it will return 1. 
+ *          If it's more convenient to work with the matrix, then it will return 2.
  */
 int strategy_decider(){
 
@@ -307,13 +300,18 @@ void create_threads ( pthread_t * array_of_threads, pthread_attr_t * thread_dron
                       drone * array_of_drones, thread_args_drone ** arr_of_args_drone, 
                       target * array_of_targets, int strategy ){
     
+    if(num_of_threads <= 0){
+        perror("ERROR: num_of_threads must be positive!");
+        exit(EXIT_FAILURE);
+    }
+
     long long j = 0, array_of_drones_for_threads[num_of_threads];
 
     calculate_drone_per_thread(array_of_drones_for_threads);
 
     for (long long i = 0; i < num_of_threads; i++){
         
-        thread_args_drone * arg = malloc(sizeof(thread_args_drone));
+        thread_args_drone * arg = malloc(num_of_threads * sizeof(thread_args_drone));
         if (arg == NULL){
             perror("ERROR: Failed allocating dynamic memory!");
             exit(EXIT_FAILURE);
@@ -337,13 +335,13 @@ void create_threads ( pthread_t * array_of_threads, pthread_attr_t * thread_dron
 
         switch (strategy){
             case 1:
-
+                
                 pthread_create( &array_of_threads[i], thread_drone_attr, 
                                 drone_damage_targets, arr_of_args_drone[i] );
                 break;
 
             case 2:
-
+                
                 pthread_create( &array_of_threads[i], thread_drone_attr, 
                                 drone_damage_targets_matrix, arr_of_args_drone[i] );
                 break;
@@ -354,10 +352,10 @@ void create_threads ( pthread_t * array_of_threads, pthread_attr_t * thread_dron
 }
 
 /**
- * @brief Waits for threads to finish, starting for the first one, and then the others.
+ * @brief   Waits for threads to finish, starting for the first one, and then the others.
  * 
- * @param array_of_threads contains the array of id's threads so it could identify threads
- * @return void.
+ * @param   array_of_threads contains the array of id's threads so it could identify threads
+ * @return  void.
  */
 void join_threads (pthread_t * array_of_threads){
     for (long long i = 0; i < num_of_threads; i++){
@@ -366,10 +364,10 @@ void join_threads (pthread_t * array_of_threads){
 }
 
 /**
- * @brief Used to receive the input with a specific format and to initialize all global variables used in the code.
+ * @brief   Used to receive the input with a specific format and to initialize all global variables used in the code.
  * 
- * @param file_name name or path to the file in format .txt used as input.
- * @return bool, true in case everything goes well, otherwise false.
+ * @param   file_name name or path to the file in format .txt used as input.
+ * @return  bool, true in case everything goes well, otherwise false.
  */
 bool parse_input(char * file_name){
     
@@ -393,7 +391,7 @@ bool parse_input(char * file_name){
         exit(EXIT_FAILURE);
     }
 
-    for (int i = 0; i < n; i++) {
+    for (long long i = 0; i < n; i++) {
         // Assign memory to row
         land[i] = (target **)malloc(m * sizeof(target *)); 
         if (land[i] == NULL) {
@@ -401,7 +399,7 @@ bool parse_input(char * file_name){
             exit(EXIT_FAILURE);
         }
 
-        for (int j = 0; j < m; j++) {
+        for (long long j = 0; j < m; j++) {
             land[i][j] = NULL;  // Initialize pointers in NULL
         }
     }
@@ -415,11 +413,11 @@ bool parse_input(char * file_name){
 
     array_of_targets = (target *) malloc (num_of_targets * sizeof(target));
 
-    for(int i = 1; i <= num_of_targets; i++){
-        int coord_x, coord_y, resistance;
+    for(long long i = 1; i <= num_of_targets; i++){
+        long long coord_x, coord_y, resistance;
 
         // Receives attributes for each target
-        if (fscanf(txt_file, "%d %d %d", &coord_x, &coord_y, &resistance) != 3) {
+        if (fscanf(txt_file, "%lld %lld %lld", &coord_x, &coord_y, &resistance) != 3) {
             perror("Error: Wrong format!\n");
             exit(EXIT_FAILURE);
         }
@@ -444,10 +442,10 @@ bool parse_input(char * file_name){
 
     array_of_drones = (drone *) malloc (num_of_drones * sizeof(drone));
 
-    for(int i = 1; i <= num_of_drones; i++){
-        int coord_x, coord_y, radius, power;
+    for(long long i = 1; i <= num_of_drones; i++){
+        long long coord_x, coord_y, radius, power;
 
-        if ( fscanf(txt_file, "%d %d %d %d", &coord_x, &coord_y, 
+        if ( fscanf(txt_file, "%lld %lld %lld %lld", &coord_x, &coord_y, 
             &radius, &power) != 4 ) {
             perror("Error: Wrong format!\n");
             exit(EXIT_FAILURE);
@@ -468,9 +466,9 @@ bool parse_input(char * file_name){
 }
 
 /**
- * @brief Used to print ouput required.
+ * @brief   Used to print ouput required.
  * 
- * @return void, it just prints the output in a specific formats.
+ * @return  void, it just prints the output in a specific formats.
  */
 void print_output(){
 
@@ -537,15 +535,24 @@ int main(int argc, char *argv[]){
         return 1;
     }
 
+    // If num_of_threads exceeds the limit, then we limit it
     long long maximum_threads = min(n * m, num_of_drones);
     if(num_of_threads > maximum_threads){
         num_of_threads = maximum_threads;
     }
+    
+    thread_args_drone **arr_of_args_drone = malloc(num_of_threads * sizeof(thread_args_drone *));
+    if (!arr_of_args_drone) {
+        perror("ERROR: Failed allocating dynamic memory for arr_of_args_drone!");
+        exit(EXIT_FAILURE);
+    }
+
+    memset(arr_of_args_drone, 0, num_of_threads * sizeof(thread_args_drone *));
 
     // Initialization of the mutex
     if(pthread_mutex_init(&available, NULL) != 0){
-        fprintf(stderr, "Couldn't initialize mutex\n");
-        return 1;
+        perror("Error: Could not initialize mutex\n");
+        exit(EXIT_FAILURE);
     }
 
     if (num_of_drones <= 0) {
@@ -570,18 +577,20 @@ int main(int argc, char *argv[]){
     print_output();
 
     // Free section
-    for (int i = 0; i < num_of_threads; i++){
-        free(arr_of_args_drone[i]->array_of_drones);
+    for (long long i = 0; i < num_of_threads; i++) {
+        if (arr_of_args_drone[i] != NULL){
+            free(arr_of_args_drone[i]->array_of_drones);
+            free(arr_of_args_drone[i]); 
+        }
+        
     }
 
-    for (int i = 0; i < num_of_drones; i++){
-        free(arr_of_args_drone[i]);
-    }
+    free(arr_of_args_drone);
 
     pthread_attr_destroy(&thread_drone_attr);
 
     if (land != NULL) {
-        for(int i = 0; i < n; i++){
+        for(long long i = 0; i < n; i++){
                 free(land[i]);
         }
     }

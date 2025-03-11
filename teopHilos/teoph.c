@@ -35,9 +35,6 @@ drone * array_of_drones;
 target * array_of_targets;
 target *** land = NULL;
 
-/* Esta linea está mal, es importante terminar de trabajar aqui. */
-
-
 /**
  * @brief Computes how much damage a drone makes over a given target
  * 

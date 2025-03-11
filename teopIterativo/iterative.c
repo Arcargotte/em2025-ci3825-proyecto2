@@ -8,23 +8,22 @@
 #include <time.h>
 
 // Global variables
-int n, m, work_if_matrix = 0;
-long long num_of_drones, num_of_targets;
+long long n, m, num_of_drones, num_of_targets, work_if_matrix = 0;
 
 typedef struct drone {
-    int x;
-    int y;
-    int radius;
-    int damage;
-    int id;
+    long long x;
+    long long y;
+    long long radius;
+    long long damage;
+    long long id;
 } drone;
 
 typedef struct target{
-    int x;
-    int y;
-    int health;
-    int resistance;
-    int id;
+    long long x;
+    long long y;
+    long long health;
+    long long resistance;
+    long long id;
     bool destroyed;
     int type;
 } target; 
@@ -94,7 +93,7 @@ void computes_damage (drone drone, target * target){
 
 void computes_damage_in_matrix(drone drone){
 
-    int x0 = drone.x - drone.radius, y0 = drone.y - drone.radius, i = x0, j;
+    long long x0 = drone.x - drone.radius, y0 = drone.y - drone.radius, i = x0, j;
     
     while(i < x0 + (2*drone.radius + 1)){
 
@@ -106,7 +105,7 @@ void computes_damage_in_matrix(drone drone){
 
                 if( j >= 0 && j < m ){
 
-                    if( land[i][j] != NULL && land[i][j]->id > 0 && 
+                    if( land != NULL && land[i][j] != NULL && land[i][j]->id > 0 && 
                         land[i][j]->destroyed == false && 
                         land[i][j]->type == 0 ){
 
@@ -116,7 +115,7 @@ void computes_damage_in_matrix(drone drone){
                             land[i][j]->destroyed = true;
                         }
 
-                    } else if( land[i][j] != NULL && land[i][j]->id > 0 && 
+                    } else if( land != NULL && land[i][j] != NULL && land[i][j]->id > 0 && 
                                land[i][j]->destroyed == false && 
                                land[i][j]->type == 1 ){
 
@@ -147,7 +146,7 @@ bool parse_input(char * file_name){
     }
     
     // Receives rows and colums
-    if ( fscanf(txt_file, "%d %d", &n, &m) != 2 ) {
+    if ( fscanf(txt_file, "%lld %lld", &n, &m) != 2 ) {
         perror("Error: Wrong format!\n");
         exit(EXIT_FAILURE);
     }
@@ -181,11 +180,11 @@ bool parse_input(char * file_name){
 
     array_of_targets = (target *) malloc (num_of_targets * sizeof(target));
 
-    for(int i = 1; i <= num_of_targets; i++){
-        int coord_x, coord_y, resistance;
+    for(long long i = 1; i <= num_of_targets; i++){
+        long long coord_x, coord_y, resistance;
 
         // Receives attributes for each target
-        if (fscanf(txt_file, "%d %d %d", &coord_x, &coord_y, &resistance) != 3) {
+        if (fscanf(txt_file, "%lld %lld %lld", &coord_x, &coord_y, &resistance) != 3) {
             perror("Error: Wrong format!\n");
             exit(EXIT_FAILURE);
         }
@@ -210,10 +209,10 @@ bool parse_input(char * file_name){
 
     array_of_drones = (drone *) malloc (num_of_drones * sizeof(drone));
 
-    for(int i = 1; i <= num_of_drones; i++){
-        int coord_x, coord_y, radius, power;
+    for(long long i = 1; i <= num_of_drones; i++){
+        long long coord_x, coord_y, radius, power;
 
-        if ( fscanf(txt_file, "%d %d %d %d", &coord_x, &coord_y, 
+        if ( fscanf(txt_file, "%lld %lld %lld %lld", &coord_x, &coord_y, 
             &radius, &power) != 4 ) {
             perror("Error: Wrong format!\n");
             exit(EXIT_FAILURE);
@@ -242,11 +241,11 @@ int strategy_decider(){
 
 void print_output(){
 
-    int om_destroyed_targets = 0, om_parcially_destroyed_targets = 0, 
+    long long om_destroyed_targets = 0, om_parcially_destroyed_targets = 0, 
         ic_destroyed_targets = 0, ic_parcially_destroyed_targets = 0, 
         om_intact_targets = 0, ic_intact_targets = 0;
     
-    for (int i = 0; i < num_of_targets; i++){
+    for (long long i = 0; i < num_of_targets; i++){
         if( array_of_targets[i].type == 0 && !array_of_targets[i].destroyed && 
             array_of_targets[i].resistance == array_of_targets[i].health ){
 
@@ -278,13 +277,13 @@ void print_output(){
         }
     }
 
-    printf("OM sin destruir: %d\n", om_intact_targets);
-    printf("OM parcialmente destruidos: %d\n", om_parcially_destroyed_targets);
-    printf("OM totalmente destruido: %d\n", om_destroyed_targets);
+    printf("OM sin destruir: %lld\n", om_intact_targets);
+    printf("OM parcialmente destruidos: %lld\n", om_parcially_destroyed_targets);
+    printf("OM totalmente destruido: %lld\n", om_destroyed_targets);
 
-    printf("IC sin destruir: %d\n", ic_intact_targets);
-    printf("IC parcialmente destruidos: %d\n", ic_parcially_destroyed_targets);
-    printf("IC totalmente destruido: %d\n", ic_destroyed_targets);
+    printf("IC sin destruir: %lld\n", ic_intact_targets);
+    printf("IC parcialmente destruidos: %lld\n", ic_parcially_destroyed_targets);
+    printf("IC totalmente destruido: %lld\n", ic_destroyed_targets);
 }
 
 int main(int argc, char *argv[]){
@@ -305,8 +304,8 @@ int main(int argc, char *argv[]){
     switch (strategy){
         case 1:
 
-            for(int i = 0; i < num_of_drones; i++){
-                for(int j = 0; j < num_of_targets; j++){
+            for(long long i = 0; i < num_of_drones; i++){
+                for(long long j = 0; j < num_of_targets; j++){
                     if(!array_of_targets[j].destroyed){
                         computes_damage(array_of_drones[i], &array_of_targets[j]);
                     }
@@ -316,7 +315,7 @@ int main(int argc, char *argv[]){
 
         case 2:
 
-            for(int i = 0; i < num_of_drones; i++){
+            for(long long i = 0; i < num_of_drones; i++){
                 computes_damage_in_matrix(array_of_drones[i]);
             }
 
@@ -327,7 +326,7 @@ int main(int argc, char *argv[]){
     print_output();
 
     if (land != NULL) {
-        for(int i = 0; i < n; i++){
+        for(long long i = 0; i < n; i++){
             free(land[i]);
         }
     }

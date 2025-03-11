@@ -17,6 +17,8 @@
         "utility": "c",
         "variant": "c",
         "random": "c",
-        "types.h": "c"
+        "types.h": "c",
+        "limits": "c",
+        "algorithm": "c"
     }
 }

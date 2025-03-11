@@ -9,26 +9,25 @@
 #include <time.h>
 
 // Global variables
-int n, m, num_of_threads, work_if_matrix = 0;
-long long num_of_drones, num_of_targets;
+long long n, m, num_of_drones, num_of_targets, num_of_threads, work_if_matrix = 0;
 pthread_mutex_t available;
 
 typedef struct drone drone;
 struct drone{
-    int x;
-    int y;
-    int radius;
-    int damage;
-    int id;
+    long long x;
+    long long y;
+    long long radius;
+    long long damage;
+    long long id;
 };
 
 typedef struct target target;
 struct target{
-    int x;
-    int y;
-    int health;
-    int resistance;
-    int id;
+    long long x;
+    long long y;
+    long long health;
+    long long resistance;
+    long long id;
     bool destroyed;
     int type;
 };
@@ -36,7 +35,7 @@ struct target{
 typedef struct thread_args_drone{
     drone * array_of_drones;
     target * array_of_targets;
-    int num_of_drones;
+    long long num_of_drones;
 } thread_args_drone;
 
 // Global arrays
@@ -54,7 +53,7 @@ thread_args_drone * arr_of_args_drone[90000];
  * @param target Target attacked or not by the drone
  * @return int that represent how much damage the drone makes over the given target
  */
-int computes_damage (drone drone, target * target){
+long long computes_damage (drone drone, target * target){
 
     bool hits = false;
 
@@ -106,7 +105,7 @@ int computes_damage (drone drone, target * target){
  */
 void computes_damage_in_matrix(drone drone){
 
-    int x0 = drone.x - drone.radius, y0 = drone.y - drone.radius, i = x0, j;
+    long long x0 = drone.x - drone.radius, y0 = drone.y - drone.radius, i = x0, j;
     
     while(i < x0 + (2*drone.radius + 1)){
 
@@ -118,7 +117,7 @@ void computes_damage_in_matrix(drone drone){
 
                 if( j >= 0 && j < m ){
 
-                    if( land[i][j] != NULL && land[i][j]->id > 0 && 
+                    if( land != NULL && land[i][j] != NULL && land[i][j]->id > 0 && 
                         land[i][j]->destroyed == false && 
                         land[i][j]->type == 0 ){
                         
@@ -132,7 +131,7 @@ void computes_damage_in_matrix(drone drone){
                         pthread_mutex_unlock(&available);
                         // Unblocking others threads to access to the critical section
 
-                    } else if( land[i][j] != NULL && land[i][j]->id > 0 && 
+                    } else if( land != NULL && land[i][j] != NULL && land[i][j]->id > 0 && 
                                land[i][j]->destroyed == false && 
                                land[i][j]->type == 1 ){
                         
@@ -175,20 +174,20 @@ void * drone_damage_targets (void * args){
     }
 
     // This is an array to save how much damage this drone has done to each target
-    int damage_control_array[num_of_targets];
+    long long damage_control_array[num_of_targets];
 
-    memset(damage_control_array, 0, num_of_targets * sizeof(int));
+    memset(damage_control_array, 0, num_of_targets * sizeof(long long));
     
-    for(int i = 0; i < arguments->num_of_drones; i++){
-        for(int j = 0; j < num_of_targets; j++){
+    for(long long i = 0; i < arguments->num_of_drones; i++){
+        for(long long j = 0; j < num_of_targets; j++){
             if( !arguments->array_of_targets[j].destroyed ){
-
-                int damage = computes_damage(arguments->array_of_drones[i], 
+                
+                long long damage = computes_damage(arguments->array_of_drones[i], 
                                             &arguments->array_of_targets[j]);
                 
                 damage_control_array[j] += damage;
 
-                if( abs(damage_control_array[j]) >= abs(arguments->array_of_targets[j].resistance) ){
+                if( labs(damage_control_array[j]) >= labs(arguments->array_of_targets[j].resistance) ){
                     arguments->array_of_targets[j].destroyed = true;
                 }
                 
@@ -198,7 +197,7 @@ void * drone_damage_targets (void * args){
     
     // Blocking others threads to access to the critical section
     pthread_mutex_lock(&available);
-    for (int i = 0; i < num_of_targets; i++) {
+    for (long long i = 0; i < num_of_targets; i++) {
 
         if( arguments->array_of_targets[i].type == 0 &&
             !arguments->array_of_targets[i].destroyed ){
@@ -237,7 +236,7 @@ void * drone_damage_targets_matrix (void * args){
     
     thread_args_drone * arguments = (thread_args_drone * ) args;
     
-    for(int i = 0; i < arguments->num_of_drones; i++){
+    for(long long i = 0; i < arguments->num_of_drones; i++){
         computes_damage_in_matrix(arguments->array_of_drones[i]);
     }
 
@@ -255,20 +254,20 @@ void * drone_damage_targets_matrix (void * args){
  * @param array_of_drones_for_threads array empty to be filled.
  * @return void, it doesn't return; but fills the array of drones per thread with a balanced amount of drones.
  */
-void calculate_drone_per_thread( int * array_of_drones_for_threads ){
+void calculate_drone_per_thread( long long * array_of_drones_for_threads ){
 
     float drone_per_thread = (float)num_of_drones/num_of_threads;
-    int drone_int = (int) drone_per_thread, dif, i;
+    long long drone_int = (long long) drone_per_thread, dif, i;
 
-    memset(array_of_drones_for_threads, 0, num_of_threads * sizeof(int));
+    memset(array_of_drones_for_threads, 0, num_of_threads * sizeof(long long));
 
-    for(int i = 0; i < num_of_threads; i++){
+    for(long long i = 0; i < num_of_threads; i++){
         array_of_drones_for_threads[i] = drone_int;
     }
 
     drone_per_thread = drone_per_thread - drone_int;
-
-    dif = roundf(drone_per_thread * num_of_threads);
+    
+    dif = (long long) round((double) drone_per_thread * num_of_threads);
 
     i = 0;
     while(dif > 0){
@@ -308,11 +307,11 @@ void create_threads ( pthread_t * array_of_threads, pthread_attr_t * thread_dron
                       drone * array_of_drones, thread_args_drone ** arr_of_args_drone, 
                       target * array_of_targets, int strategy ){
     
-    int j = 0, array_of_drones_for_threads[num_of_threads];
+    long long j = 0, array_of_drones_for_threads[num_of_threads];
 
     calculate_drone_per_thread(array_of_drones_for_threads);
 
-    for (int i = 0; i < num_of_threads; i++){
+    for (long long i = 0; i < num_of_threads; i++){
         
         thread_args_drone * arg = malloc(sizeof(thread_args_drone));
         if (arg == NULL){
@@ -326,7 +325,7 @@ void create_threads ( pthread_t * array_of_threads, pthread_attr_t * thread_dron
             exit(EXIT_FAILURE);
         }
 
-        for(int k = 0; k < array_of_drones_for_threads[i]; k++){
+        for(long long k = 0; k < array_of_drones_for_threads[i]; k++){
             arg->array_of_drones[k] = array_of_drones[j];
             j++;
         }
@@ -361,7 +360,7 @@ void create_threads ( pthread_t * array_of_threads, pthread_attr_t * thread_dron
  * @return void.
  */
 void join_threads (pthread_t * array_of_threads){
-    for (int i = 0; i < num_of_threads; i++){
+    for (long long i = 0; i < num_of_threads; i++){
         pthread_join(array_of_threads[i], NULL);
     }
 }
@@ -382,7 +381,7 @@ bool parse_input(char * file_name){
     }
     
     // Receives rows and colums
-    if ( fscanf(txt_file, "%d %d", &n, &m) != 2 ) {
+    if ( fscanf(txt_file, "%lld %lld", &n, &m) != 2 ) {
         perror("Error: Wrong format!\n");
         exit(EXIT_FAILURE);
     }
@@ -475,11 +474,11 @@ bool parse_input(char * file_name){
  */
 void print_output(){
 
-    int om_destroyed_targets = 0, om_parcially_destroyed_targets = 0, 
+    long long om_destroyed_targets = 0, om_parcially_destroyed_targets = 0, 
         ic_destroyed_targets = 0, ic_parcially_destroyed_targets = 0, 
         om_intact_targets = 0, ic_intact_targets = 0;
     
-    for (int i = 0; i < num_of_targets; i++){
+    for (long long i = 0; i < num_of_targets; i++){
         if( array_of_targets[i].type == 0 && !array_of_targets[i].destroyed && 
             array_of_targets[i].resistance == array_of_targets[i].health ){
 
@@ -511,13 +510,17 @@ void print_output(){
         }
     }
 
-    printf("OM sin destruir: %d\n", om_intact_targets);
-    printf("OM parcialmente destruidos: %d\n", om_parcially_destroyed_targets);
-    printf("OM totalmente destruido: %d\n", om_destroyed_targets);
+    printf("OM sin destruir: %lld\n", om_intact_targets);
+    printf("OM parcialmente destruidos: %lld\n", om_parcially_destroyed_targets);
+    printf("OM totalmente destruido: %lld\n", om_destroyed_targets);
 
-    printf("IC sin destruir: %d\n", ic_intact_targets);
-    printf("IC parcialmente destruidos: %d\n", ic_parcially_destroyed_targets);
-    printf("IC totalmente destruido: %d\n", ic_destroyed_targets);
+    printf("IC sin destruir: %lld\n", ic_intact_targets);
+    printf("IC parcialmente destruidos: %lld\n", ic_parcially_destroyed_targets);
+    printf("IC totalmente destruido: %lld\n", ic_destroyed_targets);
+}
+
+long long min(long long a, long long b){
+    return (a < b) ? a : b;
 }
 
 int main(int argc, char *argv[]){
@@ -527,11 +530,16 @@ int main(int argc, char *argv[]){
         return 1;
     }
 
-    num_of_threads = atoi(argv[1]);
+    num_of_threads = atoll(argv[1]);
 
     // If an error occurs parsing the input, then return 1.
     if(!parse_input(argv[2])){
         return 1;
+    }
+
+    long long maximum_threads = min(n * m, num_of_drones);
+    if(num_of_threads > maximum_threads){
+        num_of_threads = maximum_threads;
     }
 
     // Initialization of the mutex

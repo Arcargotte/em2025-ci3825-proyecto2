@@ -12,23 +12,22 @@
 #include <sys/wait.h>
 #include <stdbool.h>
 
-int n, m, num_of_processes, work_if_matrix = 0;
-long long num_of_drones, num_of_targets;
+long long n, m, num_of_processes, num_of_drones, num_of_targets, work_if_matrix = 0;
 
 typedef struct drone{
-    int x;
-    int y;
-    int radius;
-    int damage;
-    int id;
+    long long x;
+    long long y;
+    long long radius;
+    long long damage;
+    long long id;
 } drone;
 
 typedef struct target{
-    int x;
-    int y;
-    int health;
-    int resistance;
-    int id;
+    long long x;
+    long long y;
+    long long health;
+    long long resistance;
+    long long id;
     bool destroyed;
     int type;
 } target;
@@ -54,7 +53,7 @@ bool parse_input(char * file_name){
     }
     
     // Receives rows and colums
-    if ( fscanf(txt_file, "%d %d", &n, &m) != 2 ) {
+    if ( fscanf(txt_file, "%lld %lld", &n, &m) != 2 ) {
         perror("Error: Wrong format!\n");
         exit(EXIT_FAILURE);
     }
@@ -66,7 +65,7 @@ bool parse_input(char * file_name){
         exit(EXIT_FAILURE);
     }
 
-    for (int i = 0; i < n; i++) {
+    for (long long i = 0; i < n; i++) {
         // Assign memory to row
         land[i] = (target **)malloc(m * sizeof(target *)); 
         if (land[i] == NULL) {
@@ -74,7 +73,7 @@ bool parse_input(char * file_name){
             exit(EXIT_FAILURE);
         }
 
-        for (int j = 0; j < m; j++) {
+        for (long long j = 0; j < m; j++) {
             land[i][j] = NULL;  // Initialize pointers in NULL
         }
     }
@@ -95,11 +94,11 @@ bool parse_input(char * file_name){
         exit(EXIT_FAILURE);
     }
 
-    for(int i = 1; i <= num_of_targets; i++){
-        int coord_x, coord_y, resistance;
+    for(long long i = 1; i <= num_of_targets; i++){
+        long long coord_x, coord_y, resistance;
 
         // Receives attributes for each target
-        if (fscanf(txt_file, "%d %d %d", &coord_x, &coord_y, &resistance) != 3) {
+        if (fscanf(txt_file, "%lld %lld %lld", &coord_x, &coord_y, &resistance) != 3) {
             perror("Error: Wrong format!\n");
             exit(EXIT_FAILURE);
         }
@@ -124,10 +123,10 @@ bool parse_input(char * file_name){
 
     array_of_drones = (drone *) malloc (num_of_drones * sizeof(drone));
 
-    for(int i = 1; i <= num_of_drones; i++){
-        int coord_x, coord_y, radius, power;
+    for(long long i = 1; i <= num_of_drones; i++){
+        long long coord_x, coord_y, radius, power;
 
-        if ( fscanf(txt_file, "%d %d %d %d", &coord_x, &coord_y, 
+        if ( fscanf(txt_file, "%lld %lld %lld %lld", &coord_x, &coord_y, 
             &radius, &power) != 4 ) {
             perror("Error: Wrong format!\n");
             exit(EXIT_FAILURE);
@@ -157,20 +156,20 @@ bool parse_input(char * file_name){
  * @param array_of_drones_for_threads array empty to be filled.
  * @return void, it doesn't return; but fills the array of drones per thread with a balanced amount of drones.
  */
-void calculate_drone_per_thread( int * array_of_drones_for_threads ){
+void calculate_drone_per_thread( long long * array_of_drones_for_threads ){
 
     float drone_per_thread = (float)num_of_drones/num_of_processes;
-    int drone_int = (int) drone_per_thread, dif, i;
+    long long drone_int = (long long) drone_per_thread, dif, i;
 
-    memset(array_of_drones_for_threads, 0, num_of_processes * sizeof(int));
+    memset(array_of_drones_for_threads, 0, num_of_processes * sizeof(long long));
 
-    for(int i = 0; i < num_of_processes; i++){
+    for(long long i = 0; i < num_of_processes; i++){
         array_of_drones_for_threads[i] = drone_int;
     }
 
     drone_per_thread = drone_per_thread - drone_int;
 
-    dif = roundf(drone_per_thread * num_of_processes);
+    dif = (long long) round((double) drone_per_thread * num_of_processes);
 
     i = 0;
     while(dif > 0){
@@ -186,7 +185,7 @@ void calculate_drone_per_thread( int * array_of_drones_for_threads ){
  * 
  * @param drone Drone that could or not attack the target
  * @param target Target attacked or not by the drone
- * @return int that represent how much damage the drone makes over the given target
+ * @return void
  */
 void computes_damage (drone drone, target * target){
 
@@ -256,7 +255,7 @@ void computes_damage (drone drone, target * target){
  */
 void computes_damage_in_matrix(drone drone){
 
-    int x0 = drone.x - drone.radius, y0 = drone.y - drone.radius, i = x0, j;
+    long long x0 = drone.x - drone.radius, y0 = drone.y - drone.radius, i = x0, j;
     
     while(i < x0 + (2*drone.radius + 1)){
 
@@ -268,7 +267,7 @@ void computes_damage_in_matrix(drone drone){
 
                 if( j >= 0 && j < m ){
 
-                    if( land[i][j] != NULL && land[i][j]->id > 0 && 
+                    if( land != NULL && land[i][j] != NULL && land[i][j]->id > 0 && 
                         land[i][j]->destroyed == false && 
                         land[i][j]->type == 0 ){
                         
@@ -282,7 +281,7 @@ void computes_damage_in_matrix(drone drone){
                         pthread_mutex_unlock(available);
                         // Unblocking others threads to access to the critical section
 
-                    } else if( land[i][j] != NULL && land[i][j]->id > 0 && 
+                    } else if( land != NULL && land[i][j] != NULL && land[i][j]->id > 0 && 
                                land[i][j]->destroyed == false && 
                                land[i][j]->type == 1 ){
                         
@@ -326,11 +325,11 @@ int strategy_decider(){
  */
 void print_output(){
 
-    int om_destroyed_targets = 0, om_parcially_destroyed_targets = 0, 
+    long long om_destroyed_targets = 0, om_parcially_destroyed_targets = 0, 
         ic_destroyed_targets = 0, ic_parcially_destroyed_targets = 0, 
         om_intact_targets = 0, ic_intact_targets = 0;
     
-    for (int i = 0; i < num_of_targets; i++){
+    for (long long i = 0; i < num_of_targets; i++){
         if( array_of_targets[i].type == 0 && !array_of_targets[i].destroyed && 
             array_of_targets[i].resistance == array_of_targets[i].health ){
 
@@ -362,29 +361,38 @@ void print_output(){
         }
     }
 
-    printf("OM sin destruir: %d\n", om_intact_targets);
-    printf("OM parcialmente destruidos: %d\n", om_parcially_destroyed_targets);
-    printf("OM totalmente destruido: %d\n", om_destroyed_targets);
+    printf("OM sin destruir: %lld\n", om_intact_targets);
+    printf("OM parcialmente destruidos: %lld\n", om_parcially_destroyed_targets);
+    printf("OM totalmente destruido: %lld\n", om_destroyed_targets);
 
-    printf("IC sin destruir: %d\n", ic_intact_targets);
-    printf("IC parcialmente destruidos: %d\n", ic_parcially_destroyed_targets);
-    printf("IC totalmente destruido: %d\n", ic_destroyed_targets);
+    printf("IC sin destruir: %lld\n", ic_intact_targets);
+    printf("IC parcialmente destruidos: %lld\n", ic_parcially_destroyed_targets);
+    printf("IC totalmente destruido: %lld\n", ic_destroyed_targets);
+}
+
+long long min(long long a, long long b){
+    return (a < b) ? a : b;
 }
 
 int main (int argc, char *argv[]){
-
-    int process_iter;
+    
+    long long process_iter;
 
     if(argc != 3){
         printf("Error: You should send exactly 2 arguments!\n");
         return 1;
     }
 
-    num_of_processes = atoi(argv[1]);
-    int array_of_drones_per_process[num_of_processes];
+    num_of_processes = atoll(argv[1]);
+    long long array_of_drones_per_process[num_of_processes];
 
     if(!parse_input(argv[2])){
         return 1;
+    }
+
+    long long maximum_processes = min(n * m, num_of_drones);
+    if(num_of_processes > maximum_processes){
+        num_of_processes = maximum_processes;
     }
 
     available = (pthread_mutex_t *) mmap(NULL, sizeof(pthread_mutex_t),
@@ -410,11 +418,11 @@ int main (int argc, char *argv[]){
 
     process_iter = -1;
     
-    for (int k = 0; k < num_of_processes; k++){
+    for (long long k = 0; k < num_of_processes; k++){
         process_iter++;
         id_process = fork();
 
-        if ((int)id_process < 0){
+        if ((long long)id_process < 0){
             perror("Error forking process\n");
             return 1;
         }
@@ -422,20 +430,20 @@ int main (int argc, char *argv[]){
         if (id_process == 0) {
             
             int strategy = strategy_decider();
-            int initial_drone = 0;
+            long long initial_drone = 0;
 
             switch(strategy){
                 case 1:
     
-                    for(int k = 0; k < process_iter; k++){
+                    for(long long k = 0; k < process_iter; k++){
                         initial_drone += array_of_drones_per_process[k];
                     }
 
                     // Iterates from initial drone until it reaches the amount of drones given
-                    for(int i = initial_drone; 
+                    for(long long i = initial_drone; 
                         i < initial_drone + array_of_drones_per_process[process_iter]; 
                         i++){
-                        for (int j = 0; j < num_of_targets; j++){
+                        for (long long j = 0; j < num_of_targets; j++){
                             if(!array_of_targets[j].destroyed){
                                 computes_damage( array_of_drones[i], 
                                                  &array_of_targets[j] );
@@ -447,12 +455,12 @@ int main (int argc, char *argv[]){
                     
                 case 2:
 
-                    for(int k = 0; k < process_iter; k++){
+                    for(long long k = 0; k < process_iter; k++){
                         initial_drone += array_of_drones_per_process[k];
                     }
 
                     // Iterates from initial drone until it reaches the amount of drones given
-                    for(int i = initial_drone; 
+                    for(long long i = initial_drone; 
                         i < initial_drone + array_of_drones_per_process[process_iter]; 
                         i++){
                         computes_damage_in_matrix(array_of_drones[i]);
@@ -462,8 +470,10 @@ int main (int argc, char *argv[]){
             }
 
             // Free Section
-            for (int i = 0; i < n; i++) {
-                free(land[i]);
+            if (land != NULL) {
+                for(long long i = 0; i < n; i++){
+                    free(land[i]);
+                }
             }
             free(land);
             free(array_of_drones);
@@ -480,7 +490,7 @@ int main (int argc, char *argv[]){
     // Free Section
 
     if (land != NULL) {
-        for(int i = 0; i < n; i++){
+        for(long long i = 0; i < n; i++){
             free(land[i]);
         }
     }
